@@ -45,24 +45,33 @@ performance_metrics <- function() {
 #' @return table of annual data containing numerator, denominator, value by year
 #'   and metric
 #' @param ics_code string; health code for ics of interest
-#' @param domain_type one of "Performance", "Demand" or "Capacity"
+#' @param domain_type combination of "Performance", "Demand" or "Capacity"
 #' @importFrom purrr map_df
-#' @importFrom dplyr distinct pull filter arrange
+#' @importFrom dplyr distinct pull filter arrange inner_join join_by
 #' @importFrom rlang sym
 #' @noRd
 ics_data <- function(ics_code, domain_type = NULL) {
-  # browser()
+
+  if (!is.null(domain_type)) {
+    if(!any(domain_type %in% c("Performance", "Demand", "Capacity"))) {
+      stop("domain_type needs to be one of 'Performance', 'Demand' or 'Capacity'")
+    }
+  }
+
+
   metrics <- metadata()
 
   if (!is.null(domain_type)) {
     metrics <- metrics |>
       filter(
-        !!sym("domain") == domain_type
+        !!sym("domain") %in% domain_type
       )
   }
   metrics <- metrics |>
-    distinct(!!sym("metric")) |>
-    pull()
+    distinct(
+      !!sym("metric"),
+      !!sym("domain")
+    )
 
   ics_timeseries <- list.files(
     "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/",
@@ -74,8 +83,11 @@ ics_data <- function(ics_code, domain_type = NULL) {
     ) |>
     filter(
       grepl("annual", !!sym("frequency")),
-      !!sym("org") == ics_code,
-      !!sym("metric") %in% metrics
+      !!sym("org") == ics_code
+    ) |>
+    inner_join(
+      metrics,
+      by = join_by(!!sym("metric"))
     ) |>
     arrange(
       !!sym("metric"),
@@ -85,6 +97,7 @@ ics_data <- function(ics_code, domain_type = NULL) {
     select(
       "year",
       "org",
+      "domain",
       "metric",
       "numerator",
       "denominator",

@@ -28,6 +28,7 @@ golem::add_module(name = "02_scenario_planner", with_test = TRUE) # Name of the 
 golem::add_fct("data_loading", with_test = TRUE)
 golem::add_fct("plotting", with_test = TRUE)
 golem::add_utils("lookups", with_test = TRUE)
+golem::add_fct("scenario_inputs", with_test = TRUE)
 
 ## External resources
 ## Creates .js and .css files at inst/app/www
