@@ -13,9 +13,10 @@
 #' @return A tibble, where the first column is the input type (demand or
 #'   capacity), the second column is the metric name, and the remaining columns
 #'   are the future year values based on the selected scenario
-#' @importFrom dplyr group_by select arrange ungroup mutate
-#' @importFrom tidyr complete fill pivot_wider nesting
+#' @importFrom dplyr group_by select arrange ungroup mutate bind_cols tibble case_when
+#' @importFrom tidyr complete fill pivot_wider nesting nest unnest
 #' @importFrom rlang sym
+#' @importFrom purrr map map2
 #' @noRd
 scenario_inputs <- function(ics_code, horizon, scenario,
                             percent = NULL, linear_years = NULL) {
@@ -42,14 +43,17 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       "domain", "metric", "year", "value"
     )
 
-  earliest_end_year <- historic_data |>
+  end_year_range <- historic_data |>
     filter(
       !!sym("year") == max(!!sym("year")),
       .by = !!sym("metric")
     ) |>
     distinct(!!sym("year")) |>
-    filter(!!sym("year") == min(!!sym("year"))) |>
-    pull(!!sym("year"))
+    pull(!!sym("year")) |>
+    range()
+
+  earliest_end_year <- end_year_range[1]
+  latest_end_year <- end_year_range[2]
 
   if (scenario == "last_known_year") {
 
@@ -106,10 +110,64 @@ scenario_inputs <- function(ics_code, horizon, scenario,
         .direction = "down"
       ) |>
       mutate(
-        value = value * (percent ^ index)
+        value = !!sym("value") * (percent ^ !!sym("index"))
       ) |>
       ungroup() |>
       select(!c("index"))
+  } else if (scenario == "linear") {
+
+    long_metric_data <- historic_data |>
+      filter(
+        !!sym("year") >= max(!!sym("year")) - (linear_years - 1),
+        .by = c(
+          !!sym("metric"),
+          !!sym("domain")
+        )
+      ) |>
+      group_by(
+        !!sym("metric"),
+        !!sym("domain")
+      ) |>
+      tidyr::complete(
+        year = seq(
+          from = min(!!sym("year")),
+          to = latest_end_year + horizon,
+          by = 1
+        )
+      ) |>
+      tidyr::nest(
+        data = c(
+          !!sym("year"),
+          !!sym("value")
+        )
+      ) |>
+      mutate(
+        fit = purrr::map(
+          .x = data,
+          .f = ~ lm(!!sym("value") ~ !!sym("year"), data = .x, na.action = na.omit)
+        ),
+        data = purrr::map2(
+          .x = !!sym("fit"),
+          .y = !!sym("data"),
+          .f = ~ bind_cols(.y, tibble(prediction = predict(.x, newdata = .y)))
+        ),
+        data = purrr::map(
+          .x = !!sym("data"),
+          .f = ~ mutate(
+            .x,
+            value = case_when(
+              is.na(!!sym("value")) ~ !!sym("prediction"),
+              .default = !!sym("value")
+            )
+          )
+        )
+      ) |>
+      unnest(!!sym("data")) |>
+      select(!c("fit", "prediction")) |>
+      filter(
+        !!sym("year") >= earliest_end_year
+      )
+
   }
 
   wide_metric_data <- long_metric_data |>

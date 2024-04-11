@@ -12,6 +12,7 @@ Imports:
     bslib,
     config (>= 0.3.2),
     dplyr,
+    DT,
     ggplot2,
     golem (>= 0.4.1),
     purrr,

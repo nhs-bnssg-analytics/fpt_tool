@@ -136,7 +136,7 @@ mod_02_scenario_planner_server <- function(id, r){
       })
 
 
-    # calculate the scenario data if "last known value" selected
+    # calculate the scenario data if "percent change" selected
     observeEvent(
       input$percent_change_button, {
         r$scenario_data <- scenario_inputs(
@@ -144,6 +144,17 @@ mod_02_scenario_planner_server <- function(id, r){
           horizon = input$horizon_selector,
           scenario = "percent_change",
           percent = input$percent_change_val
+        )
+      })
+
+    # calculate the scenario data if "linear" selected
+    observeEvent(
+      input$linear_button, {
+        r$scenario_data <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "linear",
+          linear_years = input$linear_val
         )
       })
 
