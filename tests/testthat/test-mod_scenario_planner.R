@@ -1,7 +1,8 @@
 testServer(
-  mod_scenario_planner_server,
+  mod_02_scenario_planner_server,
   # Add here your module params
-  args = list()
+  r <- reactiveValues()
+  args = list(r = r)
   , {
     ns <- session$ns
     expect_true(
@@ -25,14 +26,14 @@ testServer(
     # - Testing output
     # expect_true(inherits(output$tbl$html, "html"))
 })
- 
+
 test_that("module ui works", {
-  ui <- mod_scenario_planner_ui(id = "test")
+  ui <- mod_02_scenario_planner_ui(id = "test")
   golem::expect_shinytaglist(ui)
   # Check that formals have not been removed
-  fmls <- formals(mod_scenario_planner_ui)
+  fmls <- formals(mod_02_scenario_planner_ui)
   for (i in c("id")){
     expect_true(i %in% names(fmls))
   }
 })
- 
+

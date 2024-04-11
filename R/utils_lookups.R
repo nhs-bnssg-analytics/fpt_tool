@@ -5,9 +5,10 @@
 #' @return tibble with three columns, ICB22CD, ICB22CDH, ICB22NM
 #' @importFrom readxl read_excel
 #' @importFrom dplyr distinct
+#' @importFrom here here
 #' @noRd
 lookup_ics_table <- function() {
-  filepath <- "data-raw/icb_region_lkp.xlsx"
+  filepath <- here::here("data-raw/icb_region_lkp.xlsx")
 
   if (!file.exists(filepath)) {
     download.file(
@@ -42,7 +43,7 @@ lookup_ics_table <- function() {
 lookup_ics_names <- function(with_regions = FALSE) {
   ics_nms <- lookup_ics_table()
 
-  if (with_regions) {
+  if (with_regions == TRUE) {
     ics_nms <- ics_nms |>
       select("NHSER22NM", "ICB22NM") |>
       arrange(

@@ -71,17 +71,18 @@ mod_02_scenario_planner_ui <- function(id){
           label = "Apply"
         )
       ),
-      DT::DTOutput(ns("scenario_data"))
+      DT::DTOutput(ns("scenario_data_out"))
     )
   )
 }
 
 #' scenario_planner Server Functions
 #' @noRd
-#' @importFrom DT datatable renderDT
+#' @importFrom DT datatable renderDT formatRound editData
+#' @importFrom dplyr tibble
 mod_02_scenario_planner_server <- function(id, r){
   moduleServer(id, function(input, output, session){
-    # ns <- session$ns
+    ns <- session$ns
 
     observeEvent(
       input$ics_selection, {
@@ -125,50 +126,98 @@ mod_02_scenario_planner_server <- function(id, r){
     }, res = 96)
 
 
+    # scenario data -----------------------------------------------------------
+    # default at start up
+    r$scenario_data <- reactiveValues(
+      data = tibble(
+        metric = character(),
+        domain = character()
+      )
+    )
+
     # calculate the scenario data if "last known value" selected
     observeEvent(
       input$last_known_value_button, {
-        r$scenario_data <- scenario_inputs(
+        r$scenario_data$data <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "last_known_year"
         )
+        # print("last_known_year")
       })
 
 
     # calculate the scenario data if "percent change" selected
     observeEvent(
       input$percent_change_button, {
-        r$scenario_data <- scenario_inputs(
+        r$scenario_data$data <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "percent_change",
           percent = input$percent_change_val
         )
+        # print("percent_change")
       })
 
     # calculate the scenario data if "linear" selected
     observeEvent(
       input$linear_button, {
-        r$scenario_data <- scenario_inputs(
+        r$scenario_data$data <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "linear",
           linear_years = input$linear_val
         )
+        # print("linear")
       })
 
+
     # pass scenario data table to output
-    # see this blog for editable table that stores the inputs
-    # http://www.stencilled.me/post/2019-04-18-editable/
-    output$scenario_data <- DT::renderDT({
-      DT::datatable(
-        r$scenario_data,
-        editable = TRUE,
-        rownames = FALSE
+    output$scenario_data_out <- DT::renderDT({
+      numeric_cols <- setdiff(
+        names(r$scenario_data$data),
+        c("metric", "domain")
       )
+      DT::datatable(
+        r$scenario_data$data,
+        rownames = FALSE,
+        editable = list(
+          target = "cell",
+          disable = list(columns = c(0, 1)), # disable editing metric and domain fields
+          numeric = "all" # allow only numeric values
+        ),
+        selection = "none", # don't need to be able to select rows
+        colnames = c(
+          "Metric" = "metric",
+          "Domain" = "domain"
+        ),
+        options = list(
+          pageLength = 25,
+          autoWidth = TRUE
+        )
+      ) |>
+        DT::formatRound(
+          columns = numeric_cols
+        )
+    })
+
+    # store editted scenario_data
+    # https://rstudio.github.io/DT/shiny.html
+    # https://yihui.shinyapps.io/DT-edit/
+    observeEvent(input$scenario_data_out_cell_edit, {
+      edited_cell_info <- input$scenario_data_out_cell_edit |>
+        mutate(col = col + 1) # this is because there is an offset because rownames = FALSE
+
+      # str(edited_cell_info)
+      r$scenario_data$data <<- DT::editData(
+        data = r$scenario_data$data,
+        info = edited_cell_info,
+        proxy = ns("scenario_data_out")
+      )
+
     })
 
   })
 
 }
+
