@@ -39,16 +39,16 @@ mod_02_scenario_planner_ui <- function(id){
         cellWidths = c("400px", "100px"),
         p("Use last known value"),
         actionButton(
-          inputId = ns("last_known_value"),
+          inputId = ns("last_known_value_button"),
           label = "Apply"
         )
       ),
-      p("Apply a percentage change to last known value"),
+      p("Apply a year on year percentage change to last known value"),
       splitLayout(
         cellWidths = c("400px", "100px"),
         numericInput(
           inputId = ns("percent_change_val"),
-          label = "Enter percentage change (where 1 is a 1% increase)",
+          label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
           value = 5
         ),
         actionButton(
@@ -127,15 +127,29 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # calculate the scenario data if "last known value" selected
     observeEvent(
-      input$last_known_value, {
+      input$last_known_value_button, {
         r$scenario_data <- scenario_inputs(
           ics_code = r$ics_cd,
-          horizon = inputs$horizon_selector,
+          horizon = input$horizon_selector,
           scenario = "last_known_year"
         )
       })
 
+
+    # calculate the scenario data if "last known value" selected
+    observeEvent(
+      input$percent_change_button, {
+        r$scenario_data <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "percent_change",
+          percent = input$percent_change_val
+        )
+      })
+
     # pass scenario data table to output
+    # see this blog for editable table that stores the inputs
+    # http://www.stencilled.me/post/2019-04-18-editable/
     output$scenario_data <- DT::renderDT({
       DT::datatable(
         r$scenario_data,
