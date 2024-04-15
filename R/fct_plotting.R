@@ -23,7 +23,10 @@ plot_performance <- function(historic_data, performance_metric) {
       )
     ) +
     geom_line(
-      aes(group = org)
+      aes(
+        group = value_type,
+        linetype = value_type
+      )
     ) +
     labs(
       title = performance_metric,
