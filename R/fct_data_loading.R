@@ -129,7 +129,7 @@ ics_data <- function(ics_code, domain_type = NULL, broad_age_bands = TRUE) {
 #'   broad
 #' @importFrom dplyr filter mutate summarise any_of mutate bind_rows
 #' @importFrom stringr str_replace_all
-#'
+#' @noRd
 replace_narrow_age_bands <- function(ics_timeseries) {
   age_band_data <- ics_timeseries |>
     filter(
