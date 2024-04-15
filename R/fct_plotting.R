@@ -14,7 +14,7 @@ plot_performance <- function(historic_data, performance_metric) {
 
   plot <- historic_data |>
     filter(
-      !!sym("metric") == performance_metric
+      !!sym("metric") %in% performance_metric
     ) |>
     ggplot(
       aes(
@@ -34,7 +34,11 @@ plot_performance <- function(historic_data, performance_metric) {
       x = "Year",
       y = "Proportion"
     ) +
-    theme_bw()
+    theme_bw() +
+    facet_wrap(
+      facets = vars(metric),
+      scales = "free_y"
+    )
 
   return(plot)
 }

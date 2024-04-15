@@ -22,6 +22,8 @@ mod_02_scenario_planner_ui <- function(id){
         ns("performance_metric_selection"),
         "Select performance metric to visualise",
         choices = performance_metrics(),
+        multiple = TRUE,
+        selected = performance_metrics()[1],
         width = "400px"
       ),
       plotOutput(ns("performance_plot")),
@@ -90,7 +92,9 @@ mod_02_scenario_planner_server <- function(id, r){
     ns <- session$ns
 
     observeEvent(
-      input$ics_selection, {
+      c(input$ics_selection,
+        input$performance_metric_selection
+      ), {
       r$ics_cd <- ics_code_lkp(input$ics_selection)
       r$ics_data <- ics_data(
         ics_code = r$ics_cd,
@@ -100,30 +104,14 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # draw chart of historic data when ICS selection changes
     observeEvent(
-      input$ics_selection, {
+      c(input$ics_selection,
+        input$performance_metric_selection
+      ), {
         r$performance_plot <- plot_performance(
           historic_data = r$ics_data,
           performance_metric = input$performance_metric_selection
         )
       })
-
-    observeEvent(
-      input$performance_metric_selection, {
-      r$ics_cd <- ics_code_lkp(input$ics_selection)
-      r$ics_data <- ics_data(
-        ics_code = r$ics_cd,
-        domain_type = "Performance"
-      )
-    })
-
-    # draw chart of historic data when metric selection changes
-    observeEvent(
-      input$performance_metric_selection, {
-      r$performance_plot <- plot_performance(
-        historic_data = r$ics_data,
-        performance_metric = input$performance_metric_selection
-      )
-    })
 
     # pass plot to output
     output$performance_plot <- renderPlot({
@@ -226,8 +214,7 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(input$model_scenario_button, {
       r$predictions <- model_scenario_data(
         scenario_data = r$scenario_data$data,
-        ics_code = r$ics_cd,
-        target_metric = input$performance_metric_selection
+        ics_code = r$ics_cd
       )
 
       r$performance_plot <- plot_performance(
