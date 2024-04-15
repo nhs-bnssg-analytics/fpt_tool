@@ -86,7 +86,8 @@ mod_02_scenario_planner_ui <- function(id){
 #' scenario_planner Server Functions
 #' @noRd
 #' @importFrom DT datatable renderDT formatRound editData
-#' @importFrom dplyr tibble
+#' @importFrom dplyr tibble distinct anti_join join_by
+#' @importFrom rlang sym
 mod_02_scenario_planner_server <- function(id, r){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
@@ -212,10 +213,24 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # apply scenario through model to predict outcome
     observeEvent(input$model_scenario_button, {
+      observed_data <- r$ics_data |>
+        distinct(
+          !!sym("year"),
+          !!sym("metric")
+        )
+
+
       r$predictions <- model_scenario_data(
         scenario_data = r$scenario_data$data,
         ics_code = r$ics_cd
-      )
+      ) |>
+        anti_join(
+          observed_data,
+          by = join_by(
+            !!sym("year"),
+            !!sym("metric")
+          )
+        )
 
       r$performance_plot <- plot_performance(
         historic_data = bind_rows(

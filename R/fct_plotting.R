@@ -25,7 +25,13 @@ plot_performance <- function(historic_data, performance_metric) {
     geom_line(
       aes(
         group = value_type,
-        linetype = value_type
+        linetype = value_type,
+        colour = value_type
+      )
+    ) +
+    geom_point(
+      aes(
+        colour = value_type
       )
     ) +
     labs(
