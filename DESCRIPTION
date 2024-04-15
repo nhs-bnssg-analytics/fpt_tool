@@ -14,12 +14,16 @@ Imports:
     dplyr,
     DT,
     ggplot2,
+    glmnet,
     golem (>= 0.4.1),
     here,
+    parsnip,
     purrr,
     readxl,
+    recipes,
     rlang,
     shiny (>= 1.8.0),
+    stringr,
     tidyr
 Suggests: 
     testthat (>= 3.0.0)

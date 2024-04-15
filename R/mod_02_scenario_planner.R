@@ -71,7 +71,12 @@ mod_02_scenario_planner_ui <- function(id){
           label = "Apply"
         )
       ),
-      DT::DTOutput(ns("scenario_data_out"))
+      DT::DTOutput(ns("scenario_data_out")),
+      actionButton(
+        inputId = ns("model_scenario_button"),
+        label = "Model scenario"
+      ),
+      tableOutput(ns("predictions"))
     )
   )
 }
@@ -215,6 +220,28 @@ mod_02_scenario_planner_server <- function(id, r){
         proxy = ns("scenario_data_out")
       )
 
+    })
+
+    # apply scenario through model to predict outcome
+    observeEvent(input$model_scenario_button, {
+      r$predictions <- model_scenario_data(
+        scenario_data = r$scenario_data$data,
+        ics_code = r$ics_cd,
+        target_metric = input$performance_metric_selection
+      )
+
+      r$performance_plot <- plot_performance(
+        historic_data = bind_rows(
+          r$ics_data,
+          r$predictions
+        ),
+        performance_metric = input$performance_metric_selection
+      )
+
+      output$predictions <- renderTable(r$predictions)
+      output$performance_plot <- renderPlot({
+        r$performance_plot
+      }, res = 96)
     })
 
   })

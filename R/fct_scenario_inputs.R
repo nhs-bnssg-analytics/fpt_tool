@@ -171,6 +171,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
   }
 
   wide_metric_data <- long_metric_data |>
+    ungroup() |>
     arrange(
       !!sym("domain"),
       !!sym("metric"),

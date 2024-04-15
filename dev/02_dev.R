@@ -29,6 +29,7 @@ golem::add_fct("data_loading", with_test = TRUE)
 golem::add_fct("plotting", with_test = TRUE)
 golem::add_utils("lookups", with_test = TRUE)
 golem::add_fct("scenario_inputs", with_test = TRUE)
+golem::add_fct("scenario_modelling", with_test = TRUE)
 
 ## External resources
 ## Creates .js and .css files at inst/app/www
