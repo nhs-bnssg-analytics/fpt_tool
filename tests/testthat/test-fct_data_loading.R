@@ -4,7 +4,8 @@ test_that("dimensions of ics_data function", {
   )
   expect_equal(
     names(bnssg_data),
-    c("year", "org", "domain", "metric", "numerator", "denominator", "value"),
+    c("year", "org", "domain", "metric", "numerator",
+      "denominator", "value", "value_type"),
     label = "all field names are as expected"
   )
 
