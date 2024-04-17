@@ -7,6 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
+#' @importFrom bslib navset_card_tab
 #' @importFrom DT DTOutput
 mod_02_scenario_planner_ui <- function(id){
   ns <- NS(id)
@@ -16,7 +17,7 @@ mod_02_scenario_planner_ui <- function(id){
         ns("ics_selection"),
         "Select Integrated Care System",
         choices = ics_names,
-        width = "400px"
+        width = "800px"
       ),
       selectInput(
         ns("performance_metric_selection"),
@@ -36,49 +37,98 @@ mod_02_scenario_planner_ui <- function(id){
         value = 1,
         step = 1
       ),
-      h3("Scenario selector"),
-      splitLayout(
-        cellWidths = c("400px", "100px"),
-        p("Use last known value"),
-        actionButton(
-          inputId = ns("last_known_value_button"),
-          label = "Apply"
-        )
-      ),
-      p("Apply a year on year percentage change to last known value"),
-      splitLayout(
-        cellWidths = c("400px", "100px"),
-        numericInput(
-          inputId = ns("percent_change_val"),
-          label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
-          value = 5
+      h2("Scenario selector"),
+      bslib::navset_card_tab(
+        nav_panel(
+          title = "Last known value",
+          p("Use last known value"),
+          actionButton(
+            inputId = ns("last_known_value_button"),
+            label = "Update scenario"
+          )
+          # mod_01_introduction_ui("01_introduction_1")
         ),
-        actionButton(
-          inputId = ns("percent_change_button"),
-          label = "Apply"
-        )
-      ),
-      p("Apply linear trend based on previous values"),
-      splitLayout(
-        cellWidths = c("400px", "100px"),
-        numericInput(
-          inputId = ns("linear_val"),
-          label = "Number of years to determine linear trend",
-          value = 3,
-          min = 1,
-          max = 5
+        nav_panel(
+          title = "Percentage change",
+          # mod_02_scenario_planner_ui("02_scenario_planner_1")
+          p("Apply a year on year percentage change to last known value"),
+          numericInput(
+            inputId = ns("percent_change_val"),
+            label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
+            value = 5
+          ),
+          actionButton(
+            inputId = ns("percent_change_button"),
+            label = "Update scenario"
+          )
         ),
-        actionButton(
-          inputId = ns("linear_button"),
-          label = "Apply"
+        nav_panel(
+          title = "Linear change",
+          # mod_02_scenario_planner_ui("02_scenario_planner_1")
+          p("Apply linear trend based on previous values"),
+          numericInput(
+            inputId = ns("linear_val"),
+            label = "Number of years to determine linear trend",
+            value = 3,
+            min = 1,
+            max = 5
+          ),
+          actionButton(
+            inputId = ns("linear_button"),
+            label = "Update scenario"
+          )
+        ),
+        nav_panel(
+          title = "Custom scenario",
+          # mod_02_scenario_planner_ui("02_scenario_planner_1")
+          DT::DTOutput(ns("scenario_data_out")),
+          actionButton(
+            inputId = ns("model_scenario_button"),
+            label = "Model scenario"
+          )
         )
       ),
-      DT::DTOutput(ns("scenario_data_out")),
-      actionButton(
-        inputId = ns("model_scenario_button"),
-        label = "Model scenario"
-      ),
-      tableOutput(ns("predictions"))
+      # splitLayout(
+      #   cellWidths = c("400px", "100px"),
+      #   p("Use last known value"),
+      #   actionButton(
+      #     inputId = ns("last_known_value_button"),
+      #     label = "Apply"
+      #   )
+      # ),
+      # p("Apply a year on year percentage change to last known value"),
+      # splitLayout(
+      #   cellWidths = c("400px", "100px"),
+      #   numericInput(
+      #     inputId = ns("percent_change_val"),
+      #     label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
+      #     value = 5
+      #   ),
+      #   actionButton(
+      #     inputId = ns("percent_change_button"),
+      #     label = "Apply"
+      #   )
+      # ),
+      # p("Apply linear trend based on previous values"),
+      # splitLayout(
+      #   cellWidths = c("400px", "100px"),
+      #   numericInput(
+      #     inputId = ns("linear_val"),
+      #     label = "Number of years to determine linear trend",
+      #     value = 3,
+      #     min = 1,
+      #     max = 5
+      #   ),
+      #   actionButton(
+      #     inputId = ns("linear_button"),
+      #     label = "Apply"
+      #   )
+      # ),
+      # DT::DTOutput(ns("scenario_data_out")),
+      # actionButton(
+      #   inputId = ns("model_scenario_button"),
+      #   label = "Model scenario"
+      # )
     )
   )
 }
@@ -92,15 +142,27 @@ mod_02_scenario_planner_server <- function(id, r){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
+
     observeEvent(
       c(input$ics_selection,
         input$performance_metric_selection
       ), {
-      r$ics_cd <- ics_code_lkp(input$ics_selection)
-      r$ics_data <- ics_data(
-        ics_code = r$ics_cd,
-        domain_type = "Performance"
-      )
+        # log the ICS code selected in the r database
+        r$ics_cd <- ics_code_lkp(input$ics_selection)
+
+        # make the historic performance data for the ICS available in the r database
+        r$ics_data <- ics_data(
+          ics_code = r$ics_cd,
+          domain_type = "Performance"
+        )
+
+        # reset the scenario table at the bottom of the app
+        r$scenario_data <- reactiveValues(
+          data = tibble(
+            metric = character(),
+            domain = character()
+          )
+        )
     })
 
     # draw chart of historic data when ICS selection changes
@@ -240,7 +302,6 @@ mod_02_scenario_planner_server <- function(id, r){
         performance_metric = input$performance_metric_selection
       )
 
-      output$predictions <- renderTable(r$predictions)
       output$performance_plot <- renderPlot({
         r$performance_plot
       }, res = 96)
