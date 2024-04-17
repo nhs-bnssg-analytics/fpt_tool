@@ -13,9 +13,7 @@
 #' @import recipes
 #' @import glmnet
 #' @noRd
-model_scenario_data <- function(scenario_data, ics_code) {
-
-  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs.rds")
+model_scenario_data <- function(scenario_data, ics_code, model) {
 
   performance_data <- ics_data(
     ics_code = ics_code,

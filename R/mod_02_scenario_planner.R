@@ -44,7 +44,8 @@ mod_02_scenario_planner_ui <- function(id){
           p("Use last known value"),
           actionButton(
             inputId = ns("last_known_value_button"),
-            label = "Update scenario"
+            label = "Update scenario",
+            width = "300px"
           )
           # mod_01_introduction_ui("01_introduction_1")
         ),
@@ -59,7 +60,8 @@ mod_02_scenario_planner_ui <- function(id){
           ),
           actionButton(
             inputId = ns("percent_change_button"),
-            label = "Update scenario"
+            label = "Update scenario",
+            width = "300px"
           )
         ),
         nav_panel(
@@ -75,60 +77,22 @@ mod_02_scenario_planner_ui <- function(id){
           ),
           actionButton(
             inputId = ns("linear_button"),
-            label = "Update scenario"
+            label = "Update scenario",
+            width = "300px"
           )
         ),
         nav_panel(
           title = "Custom scenario",
           # mod_02_scenario_planner_ui("02_scenario_planner_1")
-          DT::DTOutput(ns("scenario_data_out")),
+          p("Enter custom values for scenario"),
           actionButton(
             inputId = ns("model_scenario_button"),
-            label = "Model scenario"
-          )
+            label = "Model scenario",
+            width = "300px"
+          ),
+          DT::DTOutput(ns("scenario_data_out"))
         )
-      ),
-      # splitLayout(
-      #   cellWidths = c("400px", "100px"),
-      #   p("Use last known value"),
-      #   actionButton(
-      #     inputId = ns("last_known_value_button"),
-      #     label = "Apply"
-      #   )
-      # ),
-      # p("Apply a year on year percentage change to last known value"),
-      # splitLayout(
-      #   cellWidths = c("400px", "100px"),
-      #   numericInput(
-      #     inputId = ns("percent_change_val"),
-      #     label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
-      #     value = 5
-      #   ),
-      #   actionButton(
-      #     inputId = ns("percent_change_button"),
-      #     label = "Apply"
-      #   )
-      # ),
-      # p("Apply linear trend based on previous values"),
-      # splitLayout(
-      #   cellWidths = c("400px", "100px"),
-      #   numericInput(
-      #     inputId = ns("linear_val"),
-      #     label = "Number of years to determine linear trend",
-      #     value = 3,
-      #     min = 1,
-      #     max = 5
-      #   ),
-      #   actionButton(
-      #     inputId = ns("linear_button"),
-      #     label = "Apply"
-      #   )
-      # ),
-      # DT::DTOutput(ns("scenario_data_out")),
-      # actionButton(
-      #   inputId = ns("model_scenario_button"),
-      #   label = "Model scenario"
-      # )
+      )
     )
   )
 }
@@ -142,6 +106,8 @@ mod_02_scenario_planner_server <- function(id, r){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
+    # load the model outputs
+    model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs.rds")
 
     observeEvent(
       c(input$ics_selection,
@@ -284,7 +250,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
       r$predictions <- model_scenario_data(
         scenario_data = r$scenario_data$data,
-        ics_code = r$ics_cd
+        ics_code = r$ics_cd,
+        model = model_outputs
       ) |>
         anti_join(
           observed_data,
