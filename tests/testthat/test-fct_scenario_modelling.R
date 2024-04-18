@@ -117,7 +117,7 @@ test_that("end to end modelling function works", {
 
   expect_equal(
     names(outputs),
-    c("org", "year", "nhs_region", "quarter", "month", "metric", "value", "value_type"),
+    c("org", "year", "nhs_region", "quarter", "month", "metric", "value"),
     label = "checking output names of the model_scenario_data function"
   )
 
@@ -126,7 +126,7 @@ test_that("end to end modelling function works", {
       colSums(
         is.na(
           outputs |>
-            select("org", "year", "metric", "value", "value_type")
+            select("org", "year", "metric", "value")
         )
       )
     ),
