@@ -6,6 +6,8 @@
 #' @param scenario_data tibble; input data for the scenario being modelled -
 #'   data comes from the table editting interface
 #' @param ics_code character(1); three letter ICS code (beginning with Q)
+#' @param model named list of model workflow objects whose names are the
+#'   performance metrics
 #' @importFrom tidyr pivot_wider pivot_longer complete
 #' @importFrom dplyr select bind_cols mutate left_join setdiff bind_rows filter
 #' @importFrom parsnip predict.model_fit
@@ -128,9 +130,6 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
     ) |>
     filter(
       !!sym("metric") %in% names(performance_data)
-    ) |>
-    mutate(
-      value_type = "prediction"
     )
 
   return(predictions)

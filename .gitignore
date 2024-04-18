@@ -5,3 +5,4 @@
 .DS_Store
 .quarto
 *.xlsx
+/tests/shiny_understanding/*

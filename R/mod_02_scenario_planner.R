@@ -17,6 +17,7 @@ mod_02_scenario_planner_ui <- function(id){
         ns("ics_selection"),
         "Select Integrated Care System",
         choices = ics_names,
+        selected = ics_names[1],
         width = "800px"
       ),
       selectInput(
@@ -24,17 +25,22 @@ mod_02_scenario_planner_ui <- function(id){
         "Select performance metric to visualise",
         choices = performance_metrics(),
         multiple = TRUE,
-        selected = performance_metrics()[1],
+        selected = performance_metrics(),
         width = "400px"
       ),
       plotOutput(ns("performance_plot")),
+      actionButton(
+        inputId = ns("model_scenario_button"),
+        label = "Update predictions",
+        width = "300px"
+      ),
       h2("Data inputs"),
       sliderInput(
         inputId = ns("horizon_selector"),
         label = "Select number of years for planning",
         min = 1,
         max = 10,
-        value = 1,
+        value = 5,
         step = 1
       ),
       h2("Scenario selector"),
@@ -82,15 +88,15 @@ mod_02_scenario_planner_ui <- function(id){
           )
         ),
         nav_panel(
-          title = "Custom scenario",
+          title = "custom scenario",
           # mod_02_scenario_planner_ui("02_scenario_planner_1")
           p("Enter custom values for scenario"),
-          actionButton(
-            inputId = ns("model_scenario_button"),
-            label = "Model scenario",
-            width = "300px"
+          textInput(
+            inputId = ns("custom_name"),
+            label = "Enter scenario name",
+            value = "Custom scenario"
           ),
-          DT::DTOutput(ns("scenario_data_out"))
+          DT::DTOutput(ns("scenario_data_custom"))
         )
       )
     )
@@ -101,13 +107,38 @@ mod_02_scenario_planner_ui <- function(id){
 #' @noRd
 #' @importFrom DT datatable renderDT formatRound editData
 #' @importFrom dplyr tibble distinct anti_join join_by
+#' @importFrom purrr map_df
 #' @importFrom rlang sym
+#' @param r a `reactiveValues()` list with ics_cd (string, 3 letter code for
+#'   ics), ics_data (tibble containing observed data for performance metrics for
+#'   the selected ICS), performance_plot (ggplot time series of observed and
+#'   predicted values for the performance metrics by ICS), scenario_data (list
+#'   for 4 items which are each predicted values in a tibble for the performance
+#'   metrics for different scenarios: last_known, percent, linear, custom)
+
 mod_02_scenario_planner_server <- function(id, r){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
     # load the model outputs
     model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs.rds")
+
+    # r$ics_cd <- reactive({
+    #   ics_code_lkp(input$ics_selection)
+    # })
+    #
+    # default_data <- reset_scenarios(
+    #   ics_cd = observe({r$ics_cd}),
+    #   horizon = input$horizon_selector,
+    #   percent = observe({input$percent_change_val}),
+    #   linear_years = input$linear_val
+    # )
+
+    # for (nm in names(default_data)) {
+    #   r$scenario_data[[nm]] <- default_data[[nm]]
+    # }
+
+
 
     observeEvent(
       c(input$ics_selection,
@@ -123,12 +154,23 @@ mod_02_scenario_planner_server <- function(id, r){
         )
 
         # reset the scenario table at the bottom of the app
-        r$scenario_data <- reactiveValues(
-          data = tibble(
-            metric = character(),
-            domain = character()
-          )
+        # r$scenario_data <- reactiveValues(
+        #   data = tibble(
+        #     metric = character(),
+        #     domain = character()
+        #   )
+        # )
+
+        default_data <- reset_scenarios(
+          ics_cd = r$ics_cd,
+          horizon = input$horizon_selector,
+          percent = input$percent_change_val,
+          linear_years = input$linear_val
         )
+
+        for (nm in names(default_data)) {
+          r$scenario_data[[nm]] <- default_data[[nm]]
+        }
     })
 
     # draw chart of historic data when ICS selection changes
@@ -137,7 +179,10 @@ mod_02_scenario_planner_server <- function(id, r){
         input$performance_metric_selection
       ), {
         r$performance_plot <- plot_performance(
-          historic_data = r$ics_data,
+          historic_data = bind_rows(
+            r$ics_data,
+            r$predictions
+          ),
           performance_metric = input$performance_metric_selection
         )
       })
@@ -150,21 +195,24 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # scenario data -----------------------------------------------------------
     # default at start up
-    r$scenario_data <- reactiveValues(
-      data = tibble(
-        metric = character(),
-        domain = character()
-      )
-    )
+    # r$scenario_data <- reactiveValues(
+    #   data = tibble(
+    #     metric = character(),
+    #     domain = character()
+    #   )
+    # )
+
 
     # calculate the scenario data if "last known value" selected
     observeEvent(
       input$last_known_value_button, {
-        r$scenario_data$data <- scenario_inputs(
+        last_known <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "last_known_year"
         )
+        r$scenario_data$last_known <- last_known
+        r$scenario_data$custom <- last_known
         # print("last_known_year")
       })
 
@@ -172,7 +220,7 @@ mod_02_scenario_planner_server <- function(id, r){
     # calculate the scenario data if "percent change" selected
     observeEvent(
       input$percent_change_button, {
-        r$scenario_data$data <- scenario_inputs(
+        r$scenario_data$percent <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "percent_change",
@@ -184,7 +232,7 @@ mod_02_scenario_planner_server <- function(id, r){
     # calculate the scenario data if "linear" selected
     observeEvent(
       input$linear_button, {
-        r$scenario_data$data <- scenario_inputs(
+        r$scenario_data$linear <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "linear",
@@ -195,13 +243,13 @@ mod_02_scenario_planner_server <- function(id, r){
 
 
     # pass scenario data table to output
-    output$scenario_data_out <- DT::renderDT({
+    output$scenario_data_custom <- DT::renderDT({
       numeric_cols <- setdiff(
-        names(r$scenario_data$data),
+        names(r$scenario_data$custom),
         c("metric", "domain")
       )
       DT::datatable(
-        r$scenario_data$data,
+        r$scenario_data$custom,
         rownames = FALSE,
         editable = list(
           target = "cell",
@@ -226,15 +274,15 @@ mod_02_scenario_planner_server <- function(id, r){
     # store editted scenario_data
     # https://rstudio.github.io/DT/shiny.html
     # https://yihui.shinyapps.io/DT-edit/
-    observeEvent(input$scenario_data_out_cell_edit, {
-      edited_cell_info <- input$scenario_data_out_cell_edit |>
-        mutate(col = col + 1) # this is because there is an offset because rownames = FALSE
+    observeEvent(input$scenario_data_custom_cell_edit, {
+      edited_cell_info <- input$scenario_data_custom_cell_edit |>
+        mutate(col = col + 1) # this is because there is an offset as rownames = FALSE
 
       # str(edited_cell_info)
-      r$scenario_data$data <<- DT::editData(
-        data = r$scenario_data$data,
+      r$scenario_data$custom <<- DT::editData(
+        data = r$scenario_data$custom,
         info = edited_cell_info,
-        proxy = ns("scenario_data_out")
+        proxy = ns("scenario_data_custom")
       )
 
     })
@@ -247,12 +295,24 @@ mod_02_scenario_planner_server <- function(id, r){
           !!sym("metric")
         )
 
-
-      r$predictions <- model_scenario_data(
-        scenario_data = r$scenario_data$data,
-        ics_code = r$ics_cd,
-        model = model_outputs
-      ) |>
+# browser()
+      r$predictions <- setNames(
+        c("last_known", "percent", "linear", "custom"),
+        nm = c(
+          "Prediction - last known value",
+          "Prediction - percent change",
+          "Prediction - linear extrapolation",
+          paste0("Prediction - ", input$custom_name)
+          )
+        )|>
+        purrr::map_df(
+          ~ model_scenario_data(
+            scenario_data = r$scenario_data[[.x]],
+            ics_code = r$ics_cd,
+            model = model_outputs
+          ),
+          .id = "value_type"
+        ) |>
         anti_join(
           observed_data,
           by = join_by(

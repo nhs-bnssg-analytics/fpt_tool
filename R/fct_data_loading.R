@@ -113,7 +113,7 @@ ics_data <- function(ics_code, domain_type = NULL, broad_age_bands = TRUE) {
       "value"
     ) |>
     mutate(
-      value_type = "observed"
+      value_type = "Observed"
     )
 
   return(ics_timeseries)

@@ -184,3 +184,40 @@ scenario_inputs <- function(ics_code, horizon, scenario,
 
   return(wide_metric_data)
 }
+
+
+reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
+  # browser()
+  last_known <- scenario_inputs(
+    ics_code = ics_cd,
+   # ics_code = "QUY",
+    horizon = horizon,
+    scenario = "last_known_year"
+  )
+
+  custom <- last_known
+
+  percent <- scenario_inputs(
+    ics_code = ics_cd,
+    horizon = horizon,
+    scenario = "percent_change",
+    percent = percent
+  )
+
+  linear <- scenario_inputs(
+    ics_code = ics_cd,
+    horizon = horizon,
+    scenario = "linear",
+    linear_years = linear_years
+  )
+
+  output <- list(
+    "last_known" = last_known,
+    "percent" = percent,
+    "linear" = linear,
+    "custom" = custom
+  )
+
+  return(output)
+
+}
