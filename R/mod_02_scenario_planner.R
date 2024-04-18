@@ -53,11 +53,9 @@ mod_02_scenario_planner_ui <- function(id){
             label = "Update scenario",
             width = "300px"
           )
-          # mod_01_introduction_ui("01_introduction_1")
         ),
         nav_panel(
           title = "Percentage change",
-          # mod_02_scenario_planner_ui("02_scenario_planner_1")
           p("Apply a year on year percentage change to last known value"),
           numericInput(
             inputId = ns("percent_change_val"),
@@ -72,7 +70,6 @@ mod_02_scenario_planner_ui <- function(id){
         ),
         nav_panel(
           title = "Linear change",
-          # mod_02_scenario_planner_ui("02_scenario_planner_1")
           p("Apply linear trend based on previous values"),
           numericInput(
             inputId = ns("linear_val"),
@@ -88,8 +85,7 @@ mod_02_scenario_planner_ui <- function(id){
           )
         ),
         nav_panel(
-          title = "custom scenario",
-          # mod_02_scenario_planner_ui("02_scenario_planner_1")
+          title = "Custom scenario",
           p("Enter custom values for scenario"),
           textInput(
             inputId = ns("custom_name"),
@@ -123,23 +119,6 @@ mod_02_scenario_planner_server <- function(id, r){
     # load the model outputs
     model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs.rds")
 
-    # r$ics_cd <- reactive({
-    #   ics_code_lkp(input$ics_selection)
-    # })
-    #
-    # default_data <- reset_scenarios(
-    #   ics_cd = observe({r$ics_cd}),
-    #   horizon = input$horizon_selector,
-    #   percent = observe({input$percent_change_val}),
-    #   linear_years = input$linear_val
-    # )
-
-    # for (nm in names(default_data)) {
-    #   r$scenario_data[[nm]] <- default_data[[nm]]
-    # }
-
-
-
     observeEvent(
       c(input$ics_selection,
         input$performance_metric_selection
@@ -153,14 +132,6 @@ mod_02_scenario_planner_server <- function(id, r){
           domain_type = "Performance"
         )
 
-        # reset the scenario table at the bottom of the app
-        # r$scenario_data <- reactiveValues(
-        #   data = tibble(
-        #     metric = character(),
-        #     domain = character()
-        #   )
-        # )
-
         default_data <- reset_scenarios(
           ics_cd = r$ics_cd,
           horizon = input$horizon_selector,
@@ -171,13 +142,13 @@ mod_02_scenario_planner_server <- function(id, r){
         for (nm in names(default_data)) {
           r$scenario_data[[nm]] <- default_data[[nm]]
         }
-    })
 
-    # draw chart of historic data when ICS selection changes
-    observeEvent(
-      c(input$ics_selection,
-        input$performance_metric_selection
-      ), {
+        update_predictions(
+          prediction_custom_scenario = input$custom_name,
+          r = r
+        )
+
+        # draw chart of historic data when ICS selection changes
         r$performance_plot <- plot_performance(
           historic_data = bind_rows(
             r$ics_data,
@@ -185,7 +156,7 @@ mod_02_scenario_planner_server <- function(id, r){
           ),
           performance_metric = input$performance_metric_selection
         )
-      })
+    })
 
     # pass plot to output
     output$performance_plot <- renderPlot({
@@ -194,14 +165,6 @@ mod_02_scenario_planner_server <- function(id, r){
 
 
     # scenario data -----------------------------------------------------------
-    # default at start up
-    # r$scenario_data <- reactiveValues(
-    #   data = tibble(
-    #     metric = character(),
-    #     domain = character()
-    #   )
-    # )
-
 
     # calculate the scenario data if "last known value" selected
     observeEvent(
@@ -289,37 +252,10 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # apply scenario through model to predict outcome
     observeEvent(input$model_scenario_button, {
-      observed_data <- r$ics_data |>
-        distinct(
-          !!sym("year"),
-          !!sym("metric")
-        )
-
-# browser()
-      r$predictions <- setNames(
-        c("last_known", "percent", "linear", "custom"),
-        nm = c(
-          "Prediction - last known value",
-          "Prediction - percent change",
-          "Prediction - linear extrapolation",
-          paste0("Prediction - ", input$custom_name)
-          )
-        )|>
-        purrr::map_df(
-          ~ model_scenario_data(
-            scenario_data = r$scenario_data[[.x]],
-            ics_code = r$ics_cd,
-            model = model_outputs
-          ),
-          .id = "value_type"
-        ) |>
-        anti_join(
-          observed_data,
-          by = join_by(
-            !!sym("year"),
-            !!sym("metric")
-          )
-        )
+      update_predictions(
+        prediction_custom_scenario = input$custom_name,
+        r = r
+      )
 
       r$performance_plot <- plot_performance(
         historic_data = bind_rows(

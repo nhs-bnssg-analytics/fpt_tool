@@ -221,3 +221,36 @@ reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
   return(output)
 
 }
+
+update_predictions <- function(prediction_custom_scenario, r) {
+  observed_data <- r$ics_data |>
+    distinct(
+      !!sym("year"),
+      !!sym("metric")
+    )
+
+  r$predictions <- setNames(
+    c("last_known", "percent", "linear", "custom"),
+    nm = c(
+      "Prediction - last known value",
+      "Prediction - percent change",
+      "Prediction - linear extrapolation",
+      paste0("Prediction - ", prediction_custom_scenario)
+    )
+  )|>
+    purrr::map_df(
+      ~ model_scenario_data(
+        scenario_data = r$scenario_data[[.x]],
+        ics_code = r$ics_cd,
+        model = model_outputs
+      ),
+      .id = "value_type"
+    ) |>
+    anti_join(
+      observed_data,
+      by = join_by(
+        !!sym("year"),
+        !!sym("metric")
+      )
+    )
+}

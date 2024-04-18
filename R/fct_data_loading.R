@@ -85,7 +85,7 @@ ics_data <- function(ics_code, domain_type = NULL, broad_age_bands = TRUE) {
     ) |>
     filter(
       grepl("annual", !!sym("frequency")),
-      !!sym("org") == ics_code
+      !!sym("org") %in% ics_code
     )
 
   if (broad_age_bands == TRUE) {
