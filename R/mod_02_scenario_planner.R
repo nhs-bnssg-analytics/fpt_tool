@@ -145,6 +145,7 @@ mod_02_scenario_planner_server <- function(id, r){
 
         update_predictions(
           prediction_custom_scenario = input$custom_name,
+          model_outputs = model_outputs,
           r = r
         )
 
@@ -254,6 +255,7 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(input$model_scenario_button, {
       update_predictions(
         prediction_custom_scenario = input$custom_name,
+        model_outputs = model_outputs,,
         r = r
       )
 

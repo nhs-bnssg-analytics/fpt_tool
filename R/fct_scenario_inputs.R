@@ -222,7 +222,7 @@ reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
 
 }
 
-update_predictions <- function(prediction_custom_scenario, r) {
+update_predictions <- function(prediction_custom_scenario, model_outputs, r) {
   observed_data <- r$ics_data |>
     distinct(
       !!sym("year"),
