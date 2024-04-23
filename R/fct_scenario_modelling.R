@@ -11,6 +11,7 @@
 #' @importFrom tidyr pivot_wider pivot_longer complete
 #' @importFrom dplyr select bind_cols mutate left_join setdiff bind_rows filter
 #' @importFrom parsnip predict.model_fit
+#' @importFrom purrr lmap
 #' @importFrom rlang sym
 #' @import recipes
 #' @import glmnet
@@ -55,6 +56,9 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       )
     ) |>
     create_lag_variables() |>
+    filter(
+      !!sym("year") >= 2023
+    ) |>
     mutate(
       nhs_region = NA_character_,
       quarter = NA_integer_,
@@ -78,11 +82,14 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       select("year", "org")
 
     # create the predictions for the performance variables for the year of interest
-    predictions <- lapply(
+    # browser()
+    predictions <- purrr::lmap(
       model,
-      predict,
-      new_data = next_scenario_year
+      .f = (\(x) make_predictions(x, input_data = next_scenario_year))
     ) |>
+      setNames(
+        nm = names(model)
+      ) |>
       lapply(
         bind_cols,
         year_index
@@ -257,4 +264,116 @@ update_scenario_performance_data_with_predictions <- function(scenario_data, pre
     )
 
   return(scenario_data)
+}
+
+
+#' Understand the model object
+#'
+#' @param model named list containing workflow object as only item. The name
+#'   should be the target variable name
+#'
+#' @return tibble with two fields, engine, which describes the type of model
+#'   (eg, glmnet or randomForest), and model_type, which describe whether the
+#'   model is modelling a proportion or a difference from a previous value
+#'
+#' @details to understand whether the model type is a difference from previous
+#'   value model, the function looks for whether any of the input variables have
+#'   a negative value. If they do, then the model is considered a "difference
+#'   from previous" model
+#'
+#' @importFrom hardhat extract_mold
+#' @importFrom purrr pluck
+#' @importFrom dplyr tibble
+#' @noRd
+model_descriptions <- function(model) {
+  engine <- model |>
+    hardhat::extract_fit_engine() |>
+    class()
+
+  negative_values <- model |>
+    hardhat::extract_mold() |>
+    purrr::pluck("predictors") |>
+    (\(x) x < 0)() |>
+    any()
+
+  model_type <- ifelse(negative_values, "difference", "proportion")
+
+  output <- tibble(
+    engine = engine[1],
+    model_type = model_type
+  )
+  return(output)
+}
+
+
+#' Caculate predictions from model and input data
+#'
+#' @param model named list containing workflow object as only item. The name
+#'   should be the target variable name
+#' @param input_data tibble where all the field are input variables for the
+#'   models
+#'
+#' @details the function understands from the components of the workflow object
+#'   whether the model is modelling a proportion target variable or a difference
+#'   from previous year. If it is the latter, it will apply the difference to
+#'   the previous year's value to create the prediction.
+#'
+#' @return tibble with one field, named .pred, which is the prediction for the
+#'   target variable defined by the name of the list item passed in through the
+#'   model object
+#'
+#' @importFrom purrr pluck
+#' @importFrom dplyr select all_of bind_cols mutate lag
+#' @importFrom rlang sym
+#' @noRd
+make_predictions <- function(model, input_data) {
+
+  target_variable <- names(model)
+
+  # get workflow from model list
+  wf <- model |>
+    purrr::pluck(1)
+
+  model_configuration <- model_descriptions(wf)
+
+  if ("difference" %in% model_configuration$model_type) {
+
+    observed_target <- input_data |>
+      select(
+        all_of(target_variable)
+      )
+
+    input_data <- input_data |>
+      arrange(org, year) |>
+      mutate(
+        across(
+          !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
+          function(x) x - lag(x, default = 0)
+        ),
+        .by = c(
+          org
+        )
+      )
+  }
+
+  prediction <- predict(
+    wf,
+    new_data = input_data
+  )
+  if ("difference" %in% model_configuration$model_type) {
+    observed_target <- input_data |>
+      select(
+        all_of(target_variable)
+      )
+
+    prediction <- bind_cols(
+      prediction, observed_target
+    ) |>
+      mutate(
+        !!sym(".pred") := !!sym(".pred") + lag(!!sym(target_variable))
+      ) |>
+      select(!all_of(c(target_variable)))
+  }
+
+  return(prediction)
 }

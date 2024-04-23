@@ -87,6 +87,16 @@ mod_02_scenario_planner_ui <- function(id){
         nav_panel(
           title = "Custom scenario",
           p("Enter custom values for scenario"),
+          radioButtons(
+            inputId = ns("custom_display"),
+            label = "Which demand and capacity variables do you want to display?",
+            choices = c(
+              "All" = "all",
+              "Most important" = "important",
+              "Top 15 important" = "top_n"
+            ),
+            selected = "important"
+          ),
           textInput(
             inputId = ns("custom_name"),
             label = "Enter scenario name",
@@ -117,7 +127,7 @@ mod_02_scenario_planner_server <- function(id, r){
     ns <- session$ns
 
     # load the model outputs
-    model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs.rds")
+    model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_rf_diff.rds")
 
     observeEvent(
       c(input$ics_selection,
@@ -255,7 +265,7 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(input$model_scenario_button, {
       update_predictions(
         prediction_custom_scenario = input$custom_name,
-        model_outputs = model_outputs,,
+        model_outputs = model_outputs,
         r = r
       )
 

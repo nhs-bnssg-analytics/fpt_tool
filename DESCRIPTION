@@ -16,6 +16,7 @@ Imports:
     ggplot2,
     glmnet,
     golem (>= 0.4.1),
+    hardhat,
     here,
     parsnip,
     purrr,
@@ -24,10 +25,13 @@ Imports:
     rlang,
     shiny (>= 1.8.0),
     stringr,
-    tidyr
+    tidyr,
+    vip
 Suggests: 
+    devtools,
     testthat (>= 3.0.0),
     tibble,
+    tune,
     vdiffr
 Config/testthat/edition: 3
 Encoding: UTF-8
