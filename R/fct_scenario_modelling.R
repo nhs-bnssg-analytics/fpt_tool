@@ -325,6 +325,7 @@ model_descriptions <- function(model) {
 #' @importFrom purrr pluck
 #' @importFrom dplyr select all_of bind_cols mutate lag
 #' @importFrom rlang sym
+#' @importFrom hardhat extract_fit_parsnip
 #' @noRd
 make_predictions <- function(model, input_data) {
 
@@ -356,10 +357,24 @@ make_predictions <- function(model, input_data) {
       )
   }
 
-  prediction <- predict(
-    wf,
-    new_data = input_data
-  )
+  if (grepl("glm", model_configuration$engine)) {
+    lambda <- wf |>
+      hardhat::extract_fit_parsnip() |>
+      pluck("spec", "args", "penalty")
+
+    prediction <- predict(
+      wf,
+      new_data = input_data,
+      penalty = lambda
+    )
+  } else if (grepl("random", model_configuration$engine)) {
+    prediction <- predict(
+      wf,
+      new_data = input_data
+    )
+  }
+
+
   if ("difference" %in% model_configuration$model_type) {
     observed_target <- input_data |>
       select(
