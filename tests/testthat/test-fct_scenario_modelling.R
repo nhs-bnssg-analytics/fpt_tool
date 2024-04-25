@@ -107,7 +107,10 @@ test_that("end to end modelling function works", {
     scenario = "last_known_year"
   )
 
-  model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_log.rds")
+  model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_log_pi.rds") |>
+    lapply(
+      function(x) x[[1]]
+    )
 
   outputs <- model_scenario_data(
     scenario_data = inputs,

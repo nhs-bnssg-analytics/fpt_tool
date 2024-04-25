@@ -7,7 +7,9 @@
 #' @importFrom rlang sym
 #' @noRd
 metadata <- function() {
-  meta <- read.csv("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/configuration-table.csv") |>
+  meta <- read.csv(
+    "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/configuration-table.csv",
+    encoding = "latin1") |>
     dplyr::filter(
       !!sym("status") == "include" |
         (!!sym("domain") == "Performance" &
