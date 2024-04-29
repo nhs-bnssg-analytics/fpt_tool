@@ -254,3 +254,71 @@ update_predictions <- function(prediction_custom_scenario, model_outputs, r) {
       )
     )
 }
+
+
+#' Prioritise predictor variables based on the predictors selected
+#'
+#' @param model_permutation_importance a list object containing the permutation
+#'   importance tables for each model. The list items should all have the name
+#'   of the performance variable that is being modelled. The tables within each
+#'   item should have three columns: Variable, Importance, StDev
+#' @param performance_metrics character vector of the performance metrics
+#'   selected. These are used to order the variables in the returned table to
+#'   display which have highest importance
+#' @param top_n integer(1); used to filter the returned table to the number of
+#'   variable specified
+#'
+#' @details for some models, the important metrics could be lagged versions of
+#'   the variables rather than the variable itself. To prioritise the order of
+#'   the metrics to return, for each performance metric, the maximum permutation
+#'   importance value is calculated for each predictor variable, where a lagged
+#'   version of a predictor variable is considered alongside the unlagged
+#'   version. Subsequently, the mean of the maximum values is taken across all
+#'   of the models, and then sorted to present the most important variables
+#' @return character vector of the variables that are most important to all of
+#'   the models selected, where the first variable is the most important
+#'
+#' @importFrom dplyr bind_rows filter mutate summarise
+#' @importFrom rlang sym
+#'
+#' @noRd
+important_variables <- function(model_permutation_importance,
+                                performance_metrics, top_n = NULL) {
+
+  important_metrics <- model_permutation_importance |>
+    bind_rows(
+      .id = "metric"
+    ) |>
+    filter(
+      !!sym("metric") %in% performance_metrics
+    ) |>
+    mutate(
+      Variable = gsub("lag_1_|lag_2_", "", !!sym("Variable"))
+    ) |>
+    filter(
+      !!sym("metric") != !!sym("Variable")
+    ) |>
+    summarise(
+      Importance = max(!!sym("Importance")),
+      .by = c(
+        !!sym("metric"),
+        !!sym("Variable")
+      )
+    ) |>
+    summarise(
+      Importance = mean(!!sym("Importance")),
+      .by = c(
+        !!sym("Variable")
+      )
+    )
+
+  if (!is.null(top_n)) {
+    important_metrics <- important_metrics |>
+      head(top_n)
+  }
+
+  important_metrics <- important_metrics |>
+    pull(!!sym("Variable"))
+
+  return(important_metrics)
+}

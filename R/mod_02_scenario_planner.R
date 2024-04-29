@@ -95,7 +95,7 @@ mod_02_scenario_planner_ui <- function(id){
               "Most important" = "important",
               "Top 15 important" = "top_n"
             ),
-            selected = "important"
+            selected = "top_n"
           ),
           textInput(
             inputId = ns("custom_name"),
@@ -129,7 +129,7 @@ mod_02_scenario_planner_server <- function(id, r){
     # load the model outputs
     model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_rf_pi.rds") |>
       lapply(
-        function(x) x[[1]]
+        function(x) x[["wf"]]
       )
 
     observeEvent(
@@ -259,7 +259,8 @@ mod_02_scenario_planner_server <- function(id, r){
       r$scenario_data$custom <<- DT::editData(
         data = r$scenario_data$custom,
         info = edited_cell_info,
-        proxy = ns("scenario_data_custom")
+        proxy = ns("scenario_data_custom"),
+        resetPaging = TRUE # testing this because currently
       )
 
     })

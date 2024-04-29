@@ -109,7 +109,7 @@ test_that("end to end modelling function works", {
 
   model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_log_pi.rds") |>
     lapply(
-      function(x) x[[1]]
+      function(x) x[["wf"]]
     )
 
   outputs <- model_scenario_data(
