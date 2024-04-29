@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib navset_card_tab
+#' @importFrom bslib navset_card_tab input_task_button
 #' @importFrom DT DTOutput
 mod_02_scenario_planner_ui <- function(id){
   ns <- NS(id)
@@ -29,8 +29,8 @@ mod_02_scenario_planner_ui <- function(id){
         width = "400px"
       ),
       plotOutput(ns("performance_plot")),
-      actionButton(
-        inputId = ns("model_scenario_button"),
+      input_task_button(
+        id = ns("model_scenario_button"),
         label = "Update predictions",
         width = "300px"
       ),
@@ -127,10 +127,7 @@ mod_02_scenario_planner_server <- function(id, r){
     ns <- session$ns
 
     # load the model outputs
-    model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_rf_pi.rds") |>
-      lapply(
-        function(x) x[["wf"]]
-      )
+    model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_rf_pi.rds")
 
     observeEvent(
       c(input$ics_selection,
@@ -158,7 +155,10 @@ mod_02_scenario_planner_server <- function(id, r){
 
         update_predictions(
           prediction_custom_scenario = input$custom_name,
-          model_outputs = model_outputs,
+          model_outputs = model_outputs |>
+            lapply(
+              function(x) x[["wf"]]
+            ),
           r = r
         )
 
@@ -189,7 +189,19 @@ mod_02_scenario_planner_server <- function(id, r){
           scenario = "last_known_year"
         )
         r$scenario_data$last_known <- last_known
-        r$scenario_data$custom <- last_known
+
+        update_custom_tables(
+          input_table = last_known,
+          model_permutation_importance = model_outputs |>
+            lapply(
+              function(x) x[["perm_imp"]]
+            ),
+          performance_metrics = input$performance_metric_selection,
+          table_options = input$custom_display,
+          r = r
+        )
+
+
         # print("last_known_year")
       })
 
@@ -197,11 +209,23 @@ mod_02_scenario_planner_server <- function(id, r){
     # calculate the scenario data if "percent change" selected
     observeEvent(
       input$percent_change_button, {
-        r$scenario_data$percent <- scenario_inputs(
+        percent_change <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "percent_change",
           percent = input$percent_change_val
+        )
+
+        r$scenario_data$percent <- percent_change
+        update_custom_tables(
+          input_table = percent_change,
+          model_permutation_importance = model_outputs |>
+            lapply(
+              function(x) x[["perm_imp"]]
+            ),
+          performance_metrics = input$performance_metric_selection,
+          table_options = input$custom_display,
+          r = r
         )
         # print("percent_change")
       })
@@ -209,11 +233,23 @@ mod_02_scenario_planner_server <- function(id, r){
     # calculate the scenario data if "linear" selected
     observeEvent(
       input$linear_button, {
-        r$scenario_data$linear <- scenario_inputs(
+        linear_change <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
           scenario = "linear",
           linear_years = input$linear_val
+        )
+
+        r$scenario_data$linear <- linear_change
+        update_custom_tables(
+          input_table = linear_change,
+          model_permutation_importance = model_outputs |>
+            lapply(
+              function(x) x[["perm_imp"]]
+            ),
+          performance_metrics = input$performance_metric_selection,
+          table_options = input$custom_display,
+          r = r
         )
         # print("linear")
       })
@@ -221,12 +257,25 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # pass scenario data table to output
     output$scenario_data_custom <- DT::renderDT({
+
+      update_custom_tables(
+        input_table = r$scenario_data$custom,
+        model_permutation_importance = model_outputs |>
+          lapply(
+            function(x) x[["perm_imp"]]
+          ),
+        performance_metrics = input$performance_metric_selection,
+        table_options = input$custom_display,
+        r = r
+      )
+
       numeric_cols <- setdiff(
-        names(r$scenario_data$custom),
+        names(r$scenario_data$custom_display),
         c("metric", "domain")
       )
+
       DT::datatable(
-        r$scenario_data$custom,
+        r$scenario_data$custom_display,
         rownames = FALSE,
         editable = list(
           target = "cell",
@@ -256,20 +305,31 @@ mod_02_scenario_planner_server <- function(id, r){
         mutate(col = col + 1) # this is because there is an offset as rownames = FALSE
 
       # str(edited_cell_info)
-      r$scenario_data$custom <<- DT::editData(
-        data = r$scenario_data$custom,
+      r$scenario_data$custom_display <<- DT::editData(
+        data = r$scenario_data$custom_display,
         info = edited_cell_info,
         proxy = ns("scenario_data_custom"),
         resetPaging = TRUE # testing this because currently
       )
 
+      custom_table <- bind_rows(
+        r$scenario_data$custom_display,
+        r$scenario_data$custom_stored
+      )
+
+      r$scenario_data$custom <<- custom_table
+
     })
 
     # apply scenario through model to predict outcome
     observeEvent(input$model_scenario_button, {
+
       update_predictions(
         prediction_custom_scenario = input$custom_name,
-        model_outputs = model_outputs,
+        model_outputs = model_outputs |>
+          lapply(
+            function(x) x[["wf"]]
+          ),
         r = r
       )
 

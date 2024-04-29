@@ -25,8 +25,7 @@ Imports:
     rlang,
     shiny (>= 1.8.0),
     stringr,
-    tidyr,
-    vip
+    tidyr
 Suggests: 
     devtools,
     testthat (>= 3.0.0),

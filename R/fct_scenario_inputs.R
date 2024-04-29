@@ -322,3 +322,77 @@ important_variables <- function(model_permutation_importance,
 
   return(important_metrics)
 }
+
+create_scenario_table <- function(custom_table, important_vars, table_type) {
+  table_type <- match.arg(
+    table_type,
+    c("display", "stored")
+  )
+
+  if (table_type == "display") {
+    output_table <- custom_table |>
+      filter(!!sym("metric") %in% important_vars) |>
+      mutate(
+        metric = factor(
+          !!sym("metric"),
+          levels = important_vars
+        )
+      ) |>
+      arrange(!!sym("metric"))
+  } else if (table_type == "stored") {
+    output_table <- custom_table|>
+      filter(!(!!sym("metric") %in% important_vars))
+  }
+  return(output_table)
+}
+
+update_custom_tables <- function(input_table, model_permutation_importance, performance_metrics, table_options, r) {
+
+  table_options <- match.arg(
+    table_options,
+    c("all", "important", "top_n")
+  )
+
+  if (table_options %in% c("important", "top_n")) {
+    important_vars <- important_variables(
+      model_permutation_importance = model_permutation_importance,
+      performance_metrics = performance_metrics
+    )
+
+    all_important_variables <- create_scenario_table(
+      custom_table <- input_table,
+      important_vars = important_vars,
+      table_type = "display"
+    )
+
+    all_remaining_variables <- create_scenario_table(
+      custom_table <- input_table,
+      important_vars = important_vars,
+      table_type = "stored"
+    )
+
+    if (table_options == "important") {
+      r$scenario_data$custom_display <- all_important_variables
+      r$scenario_data$custom_stored <- all_remaining_variables
+    } else if (table_options == "top_n") {
+      n_value <- 15
+      r$scenario_data$custom_display <- all_important_variables |>
+        head(n_value)
+
+      r$scenario_data$custom_stored <- all_important_variables |>
+        tail(-n_value) |>
+        bind_rows(all_remaining_variables)
+
+    }
+  } else if (table_options ==  "all") {
+    r$scenario_data$custom_display <- input_table
+    r$scenario_data$custom_stored <- input_table |>
+      head(0)
+
+  }
+
+  r$scenario_data$custom <- bind_rows(
+    r$scenario_data$custom_display,
+    r$scenario_data$custom_stored
+  )
+}
