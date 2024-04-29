@@ -48,6 +48,11 @@ mod_02_scenario_planner_ui <- function(id){
         nav_panel(
           title = "Last known value",
           p("Use last known value"),
+          checkboxInput(
+            inputId = ns("display_last_known"),
+            label = "Display on chart",
+            value = TRUE
+          ),
           actionButton(
             inputId = ns("last_known_value_button"),
             label = "Update scenario",
@@ -57,6 +62,11 @@ mod_02_scenario_planner_ui <- function(id){
         nav_panel(
           title = "Percentage change",
           p("Apply a year on year percentage change to last known value"),
+          checkboxInput(
+            inputId = ns("display_percent"),
+            label = "Display on chart",
+            value = TRUE
+          ),
           numericInput(
             inputId = ns("percent_change_val"),
             label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
@@ -71,6 +81,11 @@ mod_02_scenario_planner_ui <- function(id){
         nav_panel(
           title = "Linear change",
           p("Apply linear trend based on previous values"),
+          checkboxInput(
+            inputId = ns("display_linear"),
+            label = "Display on chart",
+            value = TRUE
+          ),
           numericInput(
             inputId = ns("linear_val"),
             label = "Number of years to determine linear trend",
@@ -87,6 +102,11 @@ mod_02_scenario_planner_ui <- function(id){
         nav_panel(
           title = "Custom scenario",
           p("Enter custom values for scenario"),
+          checkboxInput(
+            inputId = ns("display_custom"),
+            label = "Display on chart",
+            value = TRUE
+          ),
           radioButtons(
             inputId = ns("custom_display"),
             label = "Which demand and capacity variables do you want to display?",
@@ -153,12 +173,21 @@ mod_02_scenario_planner_server <- function(id, r){
           r$scenario_data[[nm]] <- default_data[[nm]]
         }
 
+        # which scenarios have a checkbox saying to include in the chart
+        display_scenarios <- c(
+          last_known = input$display_last_known,
+          percent = input$display_percent,
+          linear = input$display_linear,
+          custom = input$display_custom
+        )
+
         update_predictions(
           prediction_custom_scenario = input$custom_name,
           model_outputs = model_outputs |>
             lapply(
               function(x) x[["wf"]]
             ),
+          display_scenarios = display_scenarios,
           r = r
         )
 
@@ -322,28 +351,41 @@ mod_02_scenario_planner_server <- function(id, r){
     })
 
     # apply scenario through model to predict outcome
-    observeEvent(input$model_scenario_button, {
+    observeEvent(
+      c(input$display_last_known,
+        input$display_linear,
+        input$display_percent,
+        input$display_custom,
+        input$model_scenario_button), {
 
-      update_predictions(
-        prediction_custom_scenario = input$custom_name,
-        model_outputs = model_outputs |>
-          lapply(
-            function(x) x[["wf"]]
+        display_scenarios <- c(
+          last_known = input$display_last_known,
+          percent = input$display_percent,
+          linear = input$display_linear,
+          custom = input$display_custom
+        )
+
+        update_predictions(
+          prediction_custom_scenario = input$custom_name,
+          model_outputs = model_outputs |>
+            lapply(
+              function(x) x[["wf"]]
+            ),
+          display_scenarios = display_scenarios,
+          r = r
+        )
+
+        r$performance_plot <- plot_performance(
+          historic_data = bind_rows(
+            r$ics_data,
+            r$predictions
           ),
-        r = r
-      )
+          performance_metric = input$performance_metric_selection
+        )
 
-      r$performance_plot <- plot_performance(
-        historic_data = bind_rows(
-          r$ics_data,
-          r$predictions
-        ),
-        performance_metric = input$performance_metric_selection
-      )
-
-      output$performance_plot <- renderPlot({
-        r$performance_plot
-      }, res = 96)
+        output$performance_plot <- renderPlot({
+          r$performance_plot
+        }, res = 96)
     })
 
   })

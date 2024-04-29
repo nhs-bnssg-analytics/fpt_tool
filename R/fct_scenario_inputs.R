@@ -186,16 +186,26 @@ scenario_inputs <- function(ics_code, horizon, scenario,
 }
 
 
+#' Reset the scenarios to the default for the selected scenarios
+#'
+#' @param ics_cd character(1); three letter health code fo rht eICS of interest
+#' @param horizon integer(1); number of years for forecasting
+#' @param percent numeric(1); year on year percentage change (where 1 = 1%)
+#' @param linear_years numeric(1); number of years to base a linear
+#'   extrapolation from
+#'
+#' @noRd
 reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
   # browser()
+
   last_known <- scenario_inputs(
     ics_code = ics_cd,
-   # ics_code = "QUY",
     horizon = horizon,
     scenario = "last_known_year"
   )
 
   custom <- last_known
+
 
   percent <- scenario_inputs(
     ics_code = ics_cd,
@@ -222,7 +232,7 @@ reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
 
 }
 
-update_predictions <- function(prediction_custom_scenario, model_outputs, r) {
+update_predictions <- function(prediction_custom_scenario, model_outputs, display_scenarios, r) {
   observed_data <- r$ics_data |>
     distinct(
       !!sym("year"),
@@ -237,7 +247,7 @@ update_predictions <- function(prediction_custom_scenario, model_outputs, r) {
       "Prediction - linear extrapolation",
       paste0("Prediction - ", prediction_custom_scenario)
     )
-  )|>
+  )[display_scenarios] |>
     purrr::map_df(
       ~ model_scenario_data(
         scenario_data = r$scenario_data[[.x]],
