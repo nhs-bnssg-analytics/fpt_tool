@@ -7,10 +7,134 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib navset_card_tab input_task_button
+#' @importFrom bslib navset_card_tab input_task_button card card_header card_body layout_column_wrap
 #' @importFrom DT DTOutput
 mod_02_scenario_planner_ui <- function(id){
   ns <- NS(id)
+
+  # scenario cards
+  last_known_card <- card(
+    fill = FALSE,
+    class = "scenario-card",
+    card_header(
+      "Last observed value",
+      class = "scenario-card-header"
+    ),
+    card_body(
+      p("Use the last observed value for each metric to populate future years for the custom scenario.")
+    ),
+    checkboxInput(
+      inputId = ns("display_last_known"),
+      label = "Display this scenario on chart",
+      value = TRUE
+    ),
+    bslib::input_task_button(
+      id = ns("last_known_value_button"),
+      label = "Populate custom scenario",
+      label_busy = "Updating custom scenario...",
+      type = "secondary"
+    )
+  )
+
+  percent_card <- card(
+    class = "scenario-card",
+    card_header(
+      "Percentage change",
+      class = "scenario-card-header"
+    ),
+    card_body(
+      p("Apply a year on year percentage change to the last observed value for each metric to populate future years for the custom scenario."),
+      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
+    ),
+    checkboxInput(
+      inputId = ns("display_percent"),
+      label = "Display on chart",
+      value = TRUE
+    ),
+    numericInput(
+      inputId = ns("percent_change_val"),
+      label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
+      value = 5
+    ),
+    layout_column_wrap(
+      card(
+        class = "button-card",
+        card_body(
+          min_height = "100px",
+          bslib::input_task_button(
+            id = ns("apply_percent_change_button"),
+            label = "Apply percentage change to performance chart",
+            label_busy = "Updating performance chart...",
+            type = "secondary"
+          )
+        )
+      ),
+      card(
+        class = "button-card",
+        card_body(
+          min_height = "100px",
+          bslib::input_task_button(
+            id = ns("percent_change_button"),
+            label = "Populate custom scenario",
+            label_busy = "Updating custom scenario...",
+            type = "secondary"
+          )
+        )
+      )
+    )
+  )
+
+  linear_card <- card(
+    class = "scenario-card",
+    card_header(
+      "Linear change",
+      class = "scenario-card-header"
+    ),
+    card_body(
+      p("Extrapolate the last observed values for each metric to populate future years for the custom scenario."),
+      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
+    ),
+    checkboxInput(
+      inputId = ns("display_linear"),
+      label = "Display on chart",
+      value = TRUE
+    ),
+    numericInput(
+      inputId = ns("linear_val"),
+      label = "Number of years to use to determine linear trend",
+      value = 3,
+      min = 1,
+      max = 5
+    ),
+    layout_column_wrap(
+      card(
+        class = "button-card",
+        card_body(
+          min_height = "100px",
+          bslib::input_task_button(
+            id = ns("apply_linear_button"),
+            label = "Apply linear scenario to performance chart",
+            label_busy = "Updating performance chart...",
+            type = "secondary"
+          )
+        )
+      ),
+      card(
+        class = "button-card",
+        card_body(
+          min_height = "100px",
+          bslib::input_task_button(
+            id = ns("linear_button"),
+            label = "Populate custom scenario",
+            label_busy = "Updating custom scenario...",
+            type = "secondary"
+          )
+        )
+      )
+    )
+  )
+
+  # start populating the ui of the shiny app
   tagList(
     fluidPage(
       selectInput(
@@ -43,63 +167,20 @@ mod_02_scenario_planner_ui <- function(id){
         value = 5,
         step = 1
       ),
+      # begin the section for selecting the scenario inputs
       h2("Scenario selector"),
       bslib::navset_card_tab(
-        nav_panel(
-          title = "Last known value",
-          p("Use last known value"),
-          checkboxInput(
-            inputId = ns("display_last_known"),
-            label = "Display on chart",
-            value = TRUE
-          ),
-          actionButton(
-            inputId = ns("last_known_value_button"),
-            label = "Update scenario",
-            width = "300px"
+        bslib::nav_panel(
+          title = "Template scenarios",
+          layout_column_wrap(
+            width = "400px",
+            # height = 500,
+            last_known_card,
+            percent_card,
+            linear_card
           )
         ),
-        nav_panel(
-          title = "Percentage change",
-          p("Apply a year on year percentage change to last known value"),
-          checkboxInput(
-            inputId = ns("display_percent"),
-            label = "Display on chart",
-            value = TRUE
-          ),
-          numericInput(
-            inputId = ns("percent_change_val"),
-            label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
-            value = 5
-          ),
-          actionButton(
-            inputId = ns("percent_change_button"),
-            label = "Update scenario",
-            width = "300px"
-          )
-        ),
-        nav_panel(
-          title = "Linear change",
-          p("Apply linear trend based on previous values"),
-          checkboxInput(
-            inputId = ns("display_linear"),
-            label = "Display on chart",
-            value = TRUE
-          ),
-          numericInput(
-            inputId = ns("linear_val"),
-            label = "Number of years to determine linear trend",
-            value = 3,
-            min = 1,
-            max = 5
-          ),
-          actionButton(
-            inputId = ns("linear_button"),
-            label = "Update scenario",
-            width = "300px"
-          )
-        ),
-        nav_panel(
+        bslib::nav_panel(
           title = "Custom scenario",
           p("Enter custom values for scenario"),
           checkboxInput(
@@ -245,7 +326,6 @@ mod_02_scenario_planner_server <- function(id, r){
           percent = input$percent_change_val
         )
 
-        r$scenario_data$percent <- percent_change
         update_custom_tables(
           input_table = percent_change,
           model_permutation_importance = model_outputs |>
@@ -269,7 +349,6 @@ mod_02_scenario_planner_server <- function(id, r){
           linear_years = input$linear_val
         )
 
-        r$scenario_data$linear <- linear_change
         update_custom_tables(
           input_table = linear_change,
           model_permutation_importance = model_outputs |>
@@ -283,6 +362,39 @@ mod_02_scenario_planner_server <- function(id, r){
         # print("linear")
       })
 
+    # update the performance chart when changes to the linear scenario is
+    # applied
+    observeEvent(
+      input$apply_linear_button, {
+
+        linear_change <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "linear",
+          linear_years = input$linear_val
+        )
+
+        r$scenario_data$linear <- linear_change
+
+      }
+    )
+
+    # update the performance chart when changes to the percent change scenario
+    # is applied
+    observeEvent(
+      input$apply_percent_change_button, {
+
+        percent_change <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "percent",
+          percent = input$percent_change_val
+        )
+
+        r$scenario_data$percent <- percent_change
+
+      }
+    )
 
     # pass scenario data table to output
     output$scenario_data_custom <- DT::renderDT({
@@ -356,7 +468,9 @@ mod_02_scenario_planner_server <- function(id, r){
         input$display_linear,
         input$display_percent,
         input$display_custom,
-        input$model_scenario_button), {
+        input$model_scenario_button,
+        input$apply_percent_change_button,
+        input$apply_linear_button), {
 
         display_scenarios <- c(
           last_known = input$display_last_known,

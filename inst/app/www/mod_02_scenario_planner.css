@@ -1,0 +1,30 @@
+
+h2 {
+
+}
+
+
+/*.bslib-grid-item {*/
+.scenario-card {
+  border-style: solid;
+  border-width: 2px;
+  border-color: rgb(174, 35, 116);
+  border-radius: 8px;
+  border-left-color: rgb(0, 94, 184);
+  border-left-width: 5px;
+}
+
+.scenario-card-header {
+  padding: 4px;
+  font-weight: bold;
+  background-color: rgb(200, 200, 200);
+
+}
+
+.card-body {
+  padding: 4px;
+}
+
+.btn {
+  text-wrap: wrap;
+}
