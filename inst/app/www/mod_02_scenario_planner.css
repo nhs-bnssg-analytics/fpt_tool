@@ -18,6 +18,9 @@ h2 {
   padding: 4px;
   font-weight: bold;
   background-color: rgb(200, 200, 200);
+  border-style: solid;
+  border-width: 1px;
+  border-color: black;
 
 }
 
@@ -27,4 +30,13 @@ h2 {
 
 .btn {
   text-wrap: wrap;
+  background-color: rgb(102, 157, 211);
+  color: white;
+  border-color: rgb(0, 94, 184);
+  border-style: solid;
+  border-width: 1px;
+}
+
+.control-label {
+  font-weight: normal;
 }

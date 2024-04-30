@@ -20,19 +20,10 @@ mod_02_scenario_planner_ui <- function(id){
       "Last observed value",
       class = "scenario-card-header"
     ),
-    card_body(
-      p("Use the last observed value for each metric to populate future years for the custom scenario.")
-    ),
     checkboxInput(
       inputId = ns("display_last_known"),
-      label = "Display this scenario on chart",
+      label = "Display on chart",
       value = TRUE
-    ),
-    bslib::input_task_button(
-      id = ns("last_known_value_button"),
-      label = "Populate custom scenario",
-      label_busy = "Updating custom scenario...",
-      type = "secondary"
     )
   )
 
@@ -42,44 +33,32 @@ mod_02_scenario_planner_ui <- function(id){
       "Percentage change",
       class = "scenario-card-header"
     ),
-    card_body(
-      p("Apply a year on year percentage change to the last observed value for each metric to populate future years for the custom scenario."),
-      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
-    ),
     checkboxInput(
       inputId = ns("display_percent"),
       label = "Display on chart",
       value = TRUE
     ),
-    numericInput(
-      inputId = ns("percent_change_val"),
-      label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
-      value = 5
+    card_body(
+      p("Apply a year on year percentage change to the last observed value for each metric to populate future years for the custom scenario."),
+      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
     ),
-    layout_column_wrap(
-      card(
-        class = "button-card",
-        card_body(
-          min_height = "100px",
-          bslib::input_task_button(
-            id = ns("apply_percent_change_button"),
-            label = "Apply percentage change to performance chart",
-            label_busy = "Updating performance chart...",
-            type = "secondary"
-          )
-        )
-      ),
-      card(
-        class = "button-card",
-        card_body(
-          min_height = "100px",
-          bslib::input_task_button(
-            id = ns("percent_change_button"),
-            label = "Populate custom scenario",
-            label_busy = "Updating custom scenario...",
-            type = "secondary"
-          )
-        )
+    card_body(
+      class = "card-body-input",
+      numericInput(
+        inputId = ns("percent_change_val"),
+        label = "Enter percentage change (where 1 is a 1% increase each year on the previous year)",
+        value = 5,
+        width = "100%"
+      )
+    ),
+    card_body(
+      min_height = "100px",
+      bslib::input_task_button(
+        id = ns("apply_percent_change_button"),
+        label = "Apply percentage change scenario to performance chart",
+        label_busy = "Updating performance chart...",
+        type = "secondary",
+        width = "75%"
       )
     )
   )
@@ -90,21 +69,56 @@ mod_02_scenario_planner_ui <- function(id){
       "Linear change",
       class = "scenario-card-header"
     ),
-    card_body(
-      p("Extrapolate the last observed values for each metric to populate future years for the custom scenario."),
-      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
-    ),
     checkboxInput(
       inputId = ns("display_linear"),
       label = "Display on chart",
       value = TRUE
     ),
-    numericInput(
-      inputId = ns("linear_val"),
-      label = "Number of years to use to determine linear trend",
-      value = 3,
-      min = 1,
-      max = 5
+    card_body(
+      p("Extrapolate the last observed values for each metric to populate future years for the custom scenario."),
+      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
+    ),
+    card_body(
+      class = "card-body-input",
+      numericInput(
+        inputId = ns("linear_val"),
+        label = "Enter the number of years to use to determine the linear trend",
+        value = 3,
+        min = 1,
+        max = 5,
+        width = "75%"
+      )
+    ),
+    card_body(
+      min_height = "100px",
+      bslib::input_task_button(
+        id = ns("apply_linear_button"),
+        label = "Apply linear scenario to performance chart",
+        label_busy = "Updating performance chart...",
+        type = "secondary"
+      )
+    )
+  )
+
+  custom_template_card <- card(
+    card_header(
+      "Populate a custom scenario",
+      class = "scenario-card-header"
+    ),
+    checkboxInput(
+      inputId = ns("display_custom"),
+      label = "Display on chart",
+      value = TRUE
+    ),
+    card_body(
+      textInput(
+        inputId = ns("custom_name"),
+        label = "Enter scenario name",
+        value = "Custom scenario"
+      )
+    ),
+    card_body(
+      p("Select an option to pre-populate your custom scenario data below.")
     ),
     layout_column_wrap(
       card(
@@ -112,9 +126,21 @@ mod_02_scenario_planner_ui <- function(id){
         card_body(
           min_height = "100px",
           bslib::input_task_button(
-            id = ns("apply_linear_button"),
-            label = "Apply linear scenario to performance chart",
-            label_busy = "Updating performance chart...",
+            id = ns("last_known_value_button"),
+            label = "Last observed value",
+            label_busy = "Updating custom scenario...",
+            type = "secondary"
+          )
+        )
+      ),
+      card(
+        class = "button-card",
+        card_body(
+          min_height = "100px",
+          bslib::input_task_button(
+            id = ns("percent_change_button"),
+            label = "Percentage change",
+            label_busy = "Updating custom scenario...",
             type = "secondary"
           )
         )
@@ -125,11 +151,31 @@ mod_02_scenario_planner_ui <- function(id){
           min_height = "100px",
           bslib::input_task_button(
             id = ns("linear_button"),
-            label = "Populate custom scenario",
+            label = "Linear extrapolation",
             label_busy = "Updating custom scenario...",
             type = "secondary"
           )
         )
+      )
+    ),
+    card(
+      card_body(
+        radioButtons(
+          inputId = ns("custom_display"),
+          label = "Which demand and capacity variables do you want to display below?",
+          width = "100%",
+          choices = c(
+            "All" = "all",
+            "Most important" = "important",
+            "Top 15 important" = "top_n"
+          ),
+          selected = "top_n"
+        )
+      ),
+      card_body(
+        min_height = "50vh",
+        max_height = "80vh",
+        DT::DTOutput(ns("scenario_data_custom"))
       )
     )
   )
@@ -170,6 +216,7 @@ mod_02_scenario_planner_ui <- function(id){
       # begin the section for selecting the scenario inputs
       h2("Scenario selector"),
       bslib::navset_card_tab(
+        full_screen = TRUE,
         bslib::nav_panel(
           title = "Template scenarios",
           layout_column_wrap(
@@ -182,28 +229,7 @@ mod_02_scenario_planner_ui <- function(id){
         ),
         bslib::nav_panel(
           title = "Custom scenario",
-          p("Enter custom values for scenario"),
-          checkboxInput(
-            inputId = ns("display_custom"),
-            label = "Display on chart",
-            value = TRUE
-          ),
-          radioButtons(
-            inputId = ns("custom_display"),
-            label = "Which demand and capacity variables do you want to display?",
-            choices = c(
-              "All" = "all",
-              "Most important" = "important",
-              "Top 15 important" = "top_n"
-            ),
-            selected = "top_n"
-          ),
-          textInput(
-            inputId = ns("custom_name"),
-            label = "Enter scenario name",
-            value = "Custom scenario"
-          ),
-          DT::DTOutput(ns("scenario_data_custom"))
+          custom_template_card
         )
       )
     )
