@@ -7,3 +7,4 @@ $run_dev.*
 ^.here$
 ^\.github$
 ^README\.Rmd$
+^codecov\.yml$

@@ -96,3 +96,27 @@ ics_name_lkp <- function(ics_code) {
     pull(ICB22NM)
   return(ics_name)
 }
+
+
+#' Load model object, or part of model object
+#'
+#' @param type character(1); either "wf" or "perm_imp"
+#'
+#' @noRd
+load_model_object <- function(type = NULL) {
+  type <- match.arg(
+    type,
+    c("wf", "perm_imp")
+  )
+
+  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_rf_pi.rds")
+
+  if (!is.null(type)) {
+    model <- model |>
+      lapply(
+        \(x) x[[type]]
+      )
+  }
+
+  return(model)
+}

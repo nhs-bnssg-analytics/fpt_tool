@@ -39,6 +39,8 @@ performance_metrics <- function() {
     pull(
       !!sym("metric")
     )
+
+  return(metrics)
 }
 
 #' historic data for an ics

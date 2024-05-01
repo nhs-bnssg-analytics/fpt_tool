@@ -254,7 +254,7 @@ mod_02_scenario_planner_server <- function(id, r){
     ns <- session$ns
 
     # load the model outputs
-    model_outputs <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_rf_pi.rds")
+    model_outputs <- load_model_object()
 
     observeEvent(
       c(input$ics_selection,

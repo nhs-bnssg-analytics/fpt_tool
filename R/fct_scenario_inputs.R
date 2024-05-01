@@ -8,7 +8,7 @@
 #'   ("last_known_year", "percent_change", "linear")
 #' @param percent numeric value; a percentage change to apply to each year from
 #'   the latest known year
-#' @param linear_years integer; the number of years to exptrapolate a linear
+#' @param linear_years integer; the number of years to extrapolate a linear
 #'   trend from for each metric
 #' @return A tibble, where the first column is the input type (demand or
 #'   capacity), the second column is the metric name, and the remaining columns
@@ -196,7 +196,6 @@ scenario_inputs <- function(ics_code, horizon, scenario,
 #'
 #' @noRd
 reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
-  # browser()
 
   last_known <- scenario_inputs(
     ics_code = ics_cd,
@@ -295,6 +294,9 @@ update_predictions <- function(prediction_custom_scenario, model_outputs, displa
 important_variables <- function(model_permutation_importance,
                                 performance_metrics, top_n = NULL) {
 
+  if (!all(performance_metrics %in% performance_metrics()))
+    stop("not all the inputs for performance_metrics have associated models")
+
   important_metrics <- model_permutation_importance |>
     bind_rows(
       .id = "metric"
@@ -333,6 +335,21 @@ important_variables <- function(model_permutation_importance,
   return(important_metrics)
 }
 
+#' Create the scenario input table for either the display in the app, or what is
+#' stored in the back-end 'database'
+#'
+#' @param custom_table full table that can be divided into a display version and
+#'   a stored version. Needs to contain a field called 'metric'
+#' @param important_vars character; vector of metrics that are used to filter
+#'   and order the metric field of the custom_table
+#' @param table_type character(1); either 'display' or 'stored'
+#'
+#' @return tibble with the same fields as the input tibble, but a reduced number
+#'   of rows based on the important_vars argument
+#'
+#' @importFrom dplyr filter mutate arrange
+#' @importFrom rlang sym
+#' @noRd
 create_scenario_table <- function(custom_table, important_vars, table_type) {
   table_type <- match.arg(
     table_type,
