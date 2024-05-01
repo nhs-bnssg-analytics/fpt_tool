@@ -194,7 +194,7 @@ create_lag_variables <- function(data, lagged_years = 2) {
 }
 
 
-#' Replace values in teh scenario dataset with predicted values in the
+#' Replace values in the scenario dataset with predicted values in the
 #' prediction dataset. This includes lagged versions of the metrics. Any values
 #' in the scenario dataset should be retained, and only NAs should be replaced
 #'
@@ -323,7 +323,7 @@ model_descriptions <- function(model) {
 #'   model object
 #'
 #' @importFrom purrr pluck
-#' @importFrom dplyr select all_of bind_cols mutate lag
+#' @importFrom dplyr select all_of bind_cols mutate lag row_number pick everything
 #' @importFrom rlang sym
 #' @importFrom hardhat extract_fit_parsnip
 #' @noRd
@@ -368,10 +368,44 @@ make_predictions <- function(model, input_data) {
       penalty = lambda
     )
   } else if (grepl("random", model_configuration$engine)) {
-    prediction <- predict(
-      wf,
-      new_data = input_data
-    )
+    # for RF, it doesn't default to providing NA when it can't make a prediction
+    # because the input data aren't correct (eg, missing data which haven't been
+    # imputed in the workflow). This function helps it return an NA in this
+    # situation
+    predict_with_error_handle <- function(object, inputs) {
+      pred <- try(
+        predict(object, new_data = inputs),
+        silent = TRUE
+      )
+
+      if (inherits(pred, "try-error")) {
+        pred <- NA
+      } else {
+        pred <- as.numeric(pred$.pred)
+      }
+
+      return(pred)
+    }
+
+    prediction <- input_data %>%
+      mutate(
+        id = dplyr::row_number()
+      ) |>
+      mutate(
+        .pred = predict_with_error_handle(
+          object = wf,
+          inputs = dplyr::pick(
+            dplyr::everything()
+          )
+        ),
+        .by = id
+      ) |>
+      dplyr::select(".pred")
+
+    # prediction <- predict(
+    #   wf,
+    #   new_data = input_data
+    # )
   }
 
 
