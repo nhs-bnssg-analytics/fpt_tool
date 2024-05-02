@@ -1,8 +1,7 @@
-#' plotting
+#' plot a number of timeseries charts for the performance metrics that contain
+#' the modelled scenarios too
 #'
-#' @description A fct function
-#'
-#' @return The return value, if any, from executing the function.
+#' @return a facetted ggplot object
 #' @import ggplot2
 #' @importFrom dplyr filter pull
 #' @importFrom tidyr separate_wider_delim replace_na
