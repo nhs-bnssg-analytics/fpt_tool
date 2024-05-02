@@ -13,7 +13,7 @@ plot_performance <- function(historic_data, performance_metric) {
     pull(!!sym("org")) |>
     unique() |>
     ics_name_lkp()
-# browser()
+
   plot <- historic_data |>
     filter(
       !!sym("metric") %in% performance_metric
@@ -75,8 +75,10 @@ plot_performance <- function(historic_data, performance_metric) {
       breaks = known_scenarios
     ) +
     labs(
-      title = performance_metric,
-      subtitle = ics_name,
+      title = paste(
+        "Observed and predicted performance metrics for",
+        ics_name
+      ),
       x = "Year",
       y = "Proportion"
     ) +

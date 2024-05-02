@@ -231,14 +231,37 @@ reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
 
 }
 
+#' Update the predictions tibble in the r object for plotting
+#'
+#' @param prediction_custom_scenario character(1); the name of the custom
+#'   scenario which is used in the chart at the top of the app
+#' @param model_outputs list object containing one item for each performance
+#'   metric that has been modelled. Within that item is a single workflow object
+#'   related to that model
+#' @param display_scenarios list where each item is named based on the scenario
+#'   (last_known, linear, percent and custom). The values for each item in the
+#'   list are TRUE or FALSE depending on whether or not they need to be
+#'   displayed in the charts
+#' @param r
+#'
+#' @return updates the "predictions" item of the r object with a table of values
+#'   by performance metrics for the scenarios that are selected to be displayed
+#'   (as indicated the names of the display_scenarios input object)
+#'
+#' @importFrom dplyr distinct anti_join join_by cross_join bind_rows
+#' @importFrom purrr map_df
+#' @noRd
 update_predictions <- function(prediction_custom_scenario, model_outputs, display_scenarios, r) {
+  # select years we have observed data for the performance metric
   observed_data <- r$ics_data |>
     distinct(
       !!sym("year"),
       !!sym("metric")
     )
 
-  r$predictions <- setNames(
+  # browser()
+  # create predictions for future years for each scenario
+  future_years_predictions <- setNames(
     c("last_known", "percent", "linear", "custom"),
     nm = c(
       "Prediction - last known value",
@@ -262,8 +285,82 @@ update_predictions <- function(prediction_custom_scenario, model_outputs, displa
         !!sym("metric")
       )
     )
+
+  # # create predictions for the observed years
+  observed_years_predictions <- update_observed_time_period_predictions(
+    model_outputs = model_outputs,
+    r = r
+  ) |>
+    dplyr::cross_join(
+      distinct(
+        future_years_predictions,
+        !!sym("value_type")
+      )
+    )
+
+  r$predictions <- bind_rows(
+    observed_years_predictions,
+    future_years_predictions
+  )
 }
 
+update_observed_time_period_predictions <- function(model_outputs, r) {
+  # all available data in long format
+  inputs_long <- ics_data(
+    ics_code = r$ics_cd
+  ) |>
+    dplyr::select(
+      !c("domain", "numerator", "denominator", "value_type")
+    )
+
+  # make wide and create lag versions
+  inputs <- inputs_long |>
+    pivot_wider(
+      names_from = !!sym("metric"),
+      values_from = !!sym("value")
+    ) |>
+    create_lag_variables() |>
+    mutate(
+      quarter = NA_integer_,
+      month = NA_integer_,
+      nhs_region = NA_character_
+    )
+
+
+  year_index <- inputs |>
+    select("year", "org")
+
+  # debugonce(make_predictions)
+  preds <- model_outputs |>
+    lmap(
+      ~ make_predictions(
+        model = .x,
+        input_data = inputs
+      )
+    ) |>
+    setNames(
+      nm = names(model_outputs)
+    ) |>
+    lapply(
+      bind_cols,
+      year_index
+    ) |>
+    bind_rows(
+      .id = "metric"
+    ) |>
+    select(
+      "metric",
+      "year",
+      "org",
+      value = ".pred"
+    ) |>
+    filter(
+      !is.na(
+        !!sym("value")
+      )
+    )
+  return(preds)
+}
 
 #' Prioritise predictor variables based on the predictors selected
 #'
@@ -422,4 +519,37 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
     r$scenario_data$custom_display,
     r$scenario_data$custom_stored
   )
+}
+
+
+#' Make sure the scenario data that is supplied to the models is within real
+#' limits
+#'
+#' @param inputs wide tibble with a metric and domain field, and then all other
+#'   fields are years which contain values for each metric for that year
+#'
+#' @return tibble that is the same shape as the input tibble, but has converted
+#'   all metrics that are proportion to values between 0 and 100, and all
+#'   metrics must be positive
+#'
+#' @noRd
+check_scenario_inputs <- function(inputs) {
+  inputs <- inputs |>
+    mutate(
+      across(
+        # convert any negative values to 0
+        !all_of(c("metric", "domain")),
+        \(x) dplyr::if_else(x < 0, 0, x)
+      ),
+      across(
+        # for metrics that should be limited to a proportion convert values that
+        # are greater than 100 to 100
+        !all_of(c("metric", "domain")),
+        \(x) dplyr::if_else(
+          grepl("proportion|prevalence|%", !!sym("metric"), ignore.case = TRUE) &
+            x > 100, 100, x)
+      )
+    )
+
+  return(inputs)
 }

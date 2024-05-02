@@ -232,3 +232,51 @@ test_that("create_scenario_table works as expected", {
   )
 
 })
+
+
+test_that("the scenario data checker function ensures all values that are not real have been changed", {
+  inputs <- tibble(
+    metric = c(
+      "proportion of a",
+      "prevalence of purple",
+      "fte per 1000",
+      "sixty seven",
+      "% 70"
+    ),
+    domain = c("Capacity", "Performance", "Demand", "Capacity", "Demand"),
+    `2021` = sample(110:200, 5),
+    `2022` = sample(-10:-1, 5),
+    `2023` = sample(2:100, 5)
+  )
+  test <- check_scenario_inputs(inputs)
+
+  expect_equal(
+    dim(inputs),
+    dim(test),
+    info = "check_scenario_inputs doesn't change the shape of the table passed to it"
+  )
+
+  expect_equal(
+    test |>
+      dplyr::select(dplyr::where(is.numeric)) |>
+      (\(x) x < 0)() |>
+      colSums() |>
+      sum(),
+    0,
+    info = "there are no values less than zero after being passed through check_scenario_inputs"
+  )
+
+  expect_equal(
+    test |>
+      filter(
+        grepl("prevalence|proportion|%", !!sym("metric"))
+      ) |>
+      dplyr::select(dplyr::where(is.numeric)) |>
+      (\(x) x > 100)() |>
+      colSums() |>
+      sum(),
+    0,
+    info = "there are no values greater than 100 for proportion metrics after being passed through check_scenario_inputs"
+  )
+
+})
