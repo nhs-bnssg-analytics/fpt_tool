@@ -18,6 +18,7 @@
 #' @noRd
 model_scenario_data <- function(scenario_data, ics_code, model) {
 
+  # performance data in wide format
   performance_data <- ics_data(
     ics_code = ics_code,
     domain_type = "Performance"
@@ -33,6 +34,8 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       values_from = !!sym("value")
     )
 
+  # transform scenario data from wide format (where columns are year) to wider
+  # format (where columns are metric).
   scenario_data <- scenario_data |>
     mutate(
       org = ics_code
@@ -48,6 +51,7 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       names_from = !!sym("metric"),
       values_from = !!sym("value")
     ) |>
+    # join with performance data
     left_join(
       performance_data,
       by = join_by(
@@ -55,10 +59,12 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
         !!sym("year")
       )
     ) |>
+    # add 2 years of lag variables
     create_lag_variables() |>
     filter(
       !!sym("year") >= 2023
     ) |>
+    # add dummy columns as they are needed in the model workflows
     mutate(
       nhs_region = NA_character_,
       quarter = NA_integer_,
@@ -66,11 +72,17 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       .after = !!sym("year")
     )
 
+  # identify which years in the scenario data (ie, the data which has been
+  # supplied from the shiny app) are not in the observed performance data
   prediction_years <- setdiff(
     scenario_data$year,
     performance_data$year
   )
 
+  # predict one year ahead at a time. This is particularly useful for the model
+  # that predicts the change in value from one year to the next. It needs to
+  # know the previous year's prediction to be able to make the subsequent year's
+  # prediction
   for (yr in prediction_years) {
 
     next_scenario_year <- scenario_data |>
@@ -82,7 +94,6 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       select("year", "org")
 
     # create the predictions for the performance variables for the year of interest
-    # browser()
     predictions <- purrr::lmap(
       model,
       .f = (\(x) make_predictions(x, input_data = next_scenario_year))
@@ -323,7 +334,8 @@ model_descriptions <- function(model) {
 #'   model object
 #'
 #' @importFrom purrr pluck
-#' @importFrom dplyr select all_of bind_cols mutate lag row_number pick everything
+#' @importFrom dplyr select all_of bind_cols mutate lag row_number pick
+#'   everything
 #' @importFrom rlang sym
 #' @importFrom hardhat extract_fit_parsnip
 #' @noRd
@@ -401,25 +413,17 @@ make_predictions <- function(model, input_data) {
         .by = id
       ) |>
       dplyr::select(".pred")
-
-    # prediction <- predict(
-    #   wf,
-    #   new_data = input_data
-    # )
   }
 
 
   if ("difference" %in% model_configuration$model_type) {
-    observed_target <- input_data |>
-      select(
-        all_of(target_variable)
-      )
 
     prediction <- bind_cols(
       prediction, observed_target
     ) |>
       mutate(
-        !!sym(".pred") := !!sym(".pred") + lag(!!sym(target_variable))
+        # add the predicted change to the lag value for the target variable
+        .pred = !!sym(".pred") + lag(!!sym(target_variable))
       ) |>
       select(!all_of(c(target_variable)))
   }

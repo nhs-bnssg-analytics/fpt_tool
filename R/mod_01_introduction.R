@@ -24,6 +24,7 @@ mod_01_introduction_ui <- function(id) {
         a(tags$strong("here."), href = "https://github.com/nhs-bnssg-analytics/d_and_c")
       )),
       column(width = 8, h2(("How to use the tool"))),
+      column(width = 8, p("On the Scenario planner tab:")),
       column(width = 8, p("1. Select the ICS")),
       column(width = 8, p("2. Select and delete (using backspace) the performance metrics that are not of interest")),
       column(width = 8, p("3. Scroll down to the bottom of the page")),
