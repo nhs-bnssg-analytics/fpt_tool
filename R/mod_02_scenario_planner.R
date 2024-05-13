@@ -182,41 +182,23 @@ mod_02_scenario_planner_ui <- function(id){
   )
 
   selector_card <- card(
-    card_header(
-      "Select an ICS and performance metrics",
-      class = "scenario-card-header"
+    selectInput(
+      ns("ics_selection"),
+      "Select Integrated Care System",
+      choices = ics_names,
+      selected = ics_names[1],
+      width = "800px"
     ),
-    card(
-      card_body(
-        selectInput(
-          ns("ics_selection"),
-          "Select Integrated Care System",
-          choices = ics_names,
-          selected = ics_names[1],
-          width = "800px"
-        )
-      )
+    selectInput(
+      ns("performance_metric_selection"),
+      "Select performance metric to visualise",
+      choices = performance_metrics(),
+      multiple = TRUE,
+      selected = performance_metrics(),
+      width = "400px"
     ),
-    layout_column_wrap(
-      card(
-        card_body(
-          selectInput(
-            ns("performance_metric_selection"),
-            "Select performance metric to visualise",
-            choices = performance_metrics(),
-            multiple = TRUE,
-            selected = performance_metrics(),
-            width = "400px"
-          )
-        )
-      ),
-      card(
-        card_body(
-          plotOutput(
-            ns("trust_icb_plot")
-          )
-        )
-      )
+    plotOutput(
+      ns("trust_icb_plot")
     )
   )
 
@@ -239,34 +221,39 @@ mod_02_scenario_planner_ui <- function(id){
 
   tagList(
     bslib::page_fluid(
-      selector_card,
-      performance_card,
-      # begin the section for selecting the scenario inputs
-      h2("Scenario selector"),
-      sliderInput(
-        inputId = ns("horizon_selector"),
-        label = "Select number of years for planning",
-        min = 1,
-        max = 10,
-        value = 5,
-        step = 1
-
-      ),
-      bslib::navset_card_tab(
-        full_screen = TRUE,
-        bslib::nav_panel(
-          title = "Template scenarios",
-          layout_column_wrap(
-            width = "400px",
-            # height = 500,
-            last_known_card,
-            percent_card,
-            linear_card
-          )
+      bslib::layout_sidebar(
+        sidebar = sidebar(
+          selector_card,
+          open = TRUE,
+          width = '25%'
         ),
-        bslib::nav_panel(
-          title = "Custom scenario",
-          custom_template_card
+        performance_card,
+        # begin the section for selecting the scenario inputs
+        h2("Scenario selector"),
+        sliderInput(
+          inputId = ns("horizon_selector"),
+          label = "Select number of years for planning",
+          min = 1,
+          max = 10,
+          value = 5,
+          step = 1
+        ),
+        bslib::navset_card_tab(
+          full_screen = TRUE,
+          bslib::nav_panel(
+            title = "Template scenarios",
+            layout_column_wrap(
+              width = "400px",
+              # height = 500,
+              last_known_card,
+              percent_card,
+              linear_card
+            )
+          ),
+          bslib::nav_panel(
+            title = "Custom scenario",
+            custom_template_card
+          )
         )
       )
     )
