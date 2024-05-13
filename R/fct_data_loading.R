@@ -165,7 +165,7 @@ replace_narrow_age_bands <- function(ics_timeseries) {
       )
     ) |>
     mutate(
-      value = numerator / denominator
+      value = (numerator / denominator) * 100
     )
 
   ics_timeseries <- ics_timeseries |>

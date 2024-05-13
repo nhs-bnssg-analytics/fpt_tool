@@ -41,6 +41,7 @@ golem::add_sass_file("custom")
 ## Add internal datasets ----
 ## If you have data in your package
 usethis::use_data_raw(name = "ics_names", open = FALSE)
+usethis::use_data_raw(name = "trust_ics_proportions", open = FALSE)
 
 ## Tests ----
 ## Add one line by test you want to create

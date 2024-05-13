@@ -92,7 +92,7 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
 
     year_index <- next_scenario_year |>
       select("year", "org")
-
+# browser()
     # create the predictions for the performance variables for the year of interest
     predictions <- purrr::lmap(
       model,
@@ -107,6 +107,9 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
       ) |>
       bind_rows(
         .id = "metric"
+      ) |>
+      mutate(
+        .pred = !!sym(".pred") * 100
       ) |>
       select(
         "metric",
@@ -348,6 +351,14 @@ make_predictions <- function(model, input_data) {
     purrr::pluck(1)
 
   model_configuration <- model_descriptions(wf)
+
+  input_data <- input_data |>
+    mutate(
+      across(
+        contains(target_variable),
+        \(x) x / 100
+      )
+    )
 
   if ("difference" %in% model_configuration$model_type) {
 

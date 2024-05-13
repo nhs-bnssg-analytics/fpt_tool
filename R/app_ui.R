@@ -14,7 +14,7 @@ app_ui <- function(request) {
     tagList(
       navset_tab(
         nav_panel(
-          title = "Introduction",
+          title = "About",
           mod_01_introduction_ui("01_introduction_1")
         ),
         nav_panel(

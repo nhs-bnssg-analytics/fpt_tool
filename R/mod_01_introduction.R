@@ -11,7 +11,6 @@ mod_01_introduction_ui <- function(id) {
   ns <- NS(id)
   tagList()
   fluidPage(
-    titlePanel("About"),
     fluidRow(
       column(width = 8, h2(("Background"))),
       column(width = 8, p(
@@ -35,11 +34,13 @@ mod_01_introduction_ui <- function(id) {
       column(width = 8, p("8. The custom scenario table is pre-populated from the 'last observed value' scenario. To update the whole table from another scenario, click the appropriate button at the top of the tab")),
       column(width = 8, p("9. Any value in the table can be changed by double clicking in a cell and typing a new value, followed by the tab key")),
       column(width = 8, p("10. Once all fo the new values have been entered, click the 'Update predictions' button below the chart and see the effect of the scenarios to future years")),
-      column(width = 8, h2(("Questions this can support"))),
+      column(width = 8, h2("Questions this can support")),
       column(width = 8, p(
         "This tool should be used to support and build cases for medium term investment. It can be used in different ways. For example, with a particular performance metric in mind, it can be used to see what mix of investment over time can help improve performance. Separately, it can be used to understand how investment in a particular capacity input, or population health management programme which will result in changes to demand, will affect multiple performance metrics."
       )),
-      column(width = 8, h2(("Contact us"))),
+      column(width = 8, h2("Limitations")),
+      column(width = 8, p("Missing variables can lead to relationships that aren't causal. Estimations applied to actue data. ")),
+      column(width = 8, h2("Contact us")),
       column(width = 8, p(
         "If you have any feedback or questions, please get in touch at",
         a(tags$strong("sebastian.fox3@nhs.net"),

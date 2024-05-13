@@ -7,7 +7,8 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib navset_card_tab input_task_button card card_header card_body layout_column_wrap
+#' @importFrom bslib navset_card_tab input_task_button card card_header
+#'   card_body layout_column_wrap layout_sidebar sidebar
 #' @importFrom DT DTOutput
 mod_02_scenario_planner_ui <- function(id){
   ns <- NS(id)
@@ -180,31 +181,68 @@ mod_02_scenario_planner_ui <- function(id){
     )
   )
 
-  # start populating the ui of the shiny app
+  selector_card <- card(
+    card_header(
+      "Select an ICS and performance metrics",
+      class = "scenario-card-header"
+    ),
+    card(
+      card_body(
+        selectInput(
+          ns("ics_selection"),
+          "Select Integrated Care System",
+          choices = ics_names,
+          selected = ics_names[1],
+          width = "800px"
+        )
+      )
+    ),
+    layout_column_wrap(
+      card(
+        card_body(
+          selectInput(
+            ns("performance_metric_selection"),
+            "Select performance metric to visualise",
+            choices = performance_metrics(),
+            multiple = TRUE,
+            selected = performance_metrics(),
+            width = "400px"
+          )
+        )
+      ),
+      card(
+        card_body(
+          plotOutput(
+            ns("trust_icb_plot")
+          )
+        )
+      )
+    )
+  )
+
+  performance_card <- card(
+    card_header(
+      "Performance viewer",
+      class = "scenario-card-header"
+    ),
+    bslib::layout_sidebar(
+      sidebar = bslib::sidebar(
+        open = TRUE,
+        input_task_button(
+          id = ns("model_scenario_button"),
+          label = "Update predictions"
+        )
+      ),
+      plotOutput(ns("performance_plot"))
+    )
+  )
+
   tagList(
-    fluidPage(
-      selectInput(
-        ns("ics_selection"),
-        "Select Integrated Care System",
-        choices = ics_names,
-        selected = ics_names[1],
-        width = "800px"
-      ),
-      selectInput(
-        ns("performance_metric_selection"),
-        "Select performance metric to visualise",
-        choices = performance_metrics(),
-        multiple = TRUE,
-        selected = performance_metrics(),
-        width = "400px"
-      ),
-      plotOutput(ns("performance_plot")),
-      input_task_button(
-        id = ns("model_scenario_button"),
-        label = "Update predictions",
-        width = "300px"
-      ),
-      h2("Data inputs"),
+    bslib::page_fluid(
+      selector_card,
+      performance_card,
+      # begin the section for selecting the scenario inputs
+      h2("Scenario selector"),
       sliderInput(
         inputId = ns("horizon_selector"),
         label = "Select number of years for planning",
@@ -212,9 +250,8 @@ mod_02_scenario_planner_ui <- function(id){
         max = 10,
         value = 5,
         step = 1
+
       ),
-      # begin the section for selecting the scenario inputs
-      h2("Scenario selector"),
       bslib::navset_card_tab(
         full_screen = TRUE,
         bslib::nav_panel(
@@ -308,11 +345,24 @@ mod_02_scenario_planner_server <- function(id, r){
         )
     })
 
+    observeEvent(
+      input$ics_selection, {
+        r$trust_icb_pie_chart <- plot_trust_icb_proportions(
+          ics_code = ics_code_lkp(
+            input$ics_selection
+          )
+        )
+      }
+    )
+
     # pass plot to output
     output$performance_plot <- renderPlot({
       r$performance_plot
     }, res = 96)
 
+    output$trust_icb_plot <- renderPlot({
+      r$trust_icb_pie_chart
+    })
 
     # scenario data -----------------------------------------------------------
 

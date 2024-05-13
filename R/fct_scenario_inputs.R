@@ -180,7 +180,8 @@ scenario_inputs <- function(ics_code, horizon, scenario,
     tidyr::pivot_wider(
       names_from = !!sym("year"),
       values_from = !!sym("value")
-    )
+    ) |>
+    check_scenario_inputs()
 
   return(wide_metric_data)
 }
@@ -330,7 +331,6 @@ update_observed_time_period_predictions <- function(model_outputs, r) {
   year_index <- inputs |>
     select("year", "org")
 
-  # debugonce(make_predictions)
   preds <- model_outputs |>
     lmap(
       ~ make_predictions(
@@ -347,6 +347,9 @@ update_observed_time_period_predictions <- function(model_outputs, r) {
     ) |>
     bind_rows(
       .id = "metric"
+    ) |>
+    mutate(
+      .pred = !!sym(".pred") * 100
     ) |>
     select(
       "metric",
