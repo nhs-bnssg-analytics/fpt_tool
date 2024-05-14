@@ -24,8 +24,9 @@ plot_performance <- function(historic_data, performance_metric) {
       too_few = "align_start"
     ) |>
     mutate(
-      scenario = replace_na(scenario, "Observed"),
-      scenario = stringr::str_to_sentence(scenario)
+      scenario = replace_na(!!sym("scenario"), "Observed"),
+      scenario = stringr::str_to_sentence(!!sym("scenario")),
+      metric = str_wrap(!!sym("metric"), 30)
     )
 
   known_scenarios <- c("Observed",
@@ -34,7 +35,7 @@ plot_performance <- function(historic_data, performance_metric) {
                        "Linear extrapolation")
 
   final_scenario <- plot |>
-    pull(scenario) |>
+    pull(!!sym("scenario")) |>
     unique() |>
     setdiff(known_scenarios)
 
@@ -51,21 +52,21 @@ plot_performance <- function(historic_data, performance_metric) {
   plot <- plot |>
     ggplot(
       aes(
-        x = factor(year),
-        y = value
+        x = factor(!!sym("year")),
+        y = !!sym("value")
       )
     ) +
     geom_line(
       aes(
-        group = scenario,
-        linetype = value_type,
-        colour = scenario
+        group = !!sym("scenario"),
+        linetype = !!sym("value_type"),
+        colour = !!sym("scenario")
       ),
       show.legend = FALSE
     ) +
     geom_point(
       aes(
-        colour = scenario
+        colour = !!sym("scenario")
       )
     ) +
     scale_colour_manual(
@@ -83,8 +84,9 @@ plot_performance <- function(historic_data, performance_metric) {
     ) +
     theme_bw() +
     facet_wrap(
-      facets = vars(metric),
-      scales = "free_y"
+      facets = vars(!!sym("metric")),
+      scales = "free_y",
+      ncol = 2
     )
 
   return(plot)
@@ -162,7 +164,6 @@ plot_trust_icb_proportions <- function(ics_code) {
             ")"
             ), 25)
       ),
-      # position = position_stack(vjust = 0.5),
       nudge_x = 1,
       color = "black",
       show.legend = FALSE,
@@ -170,8 +171,48 @@ plot_trust_icb_proportions <- function(ics_code) {
     ) +
     scale_fill_brewer(palette = "Set1") +
     labs(
-      title = "Patient admissions from residents in ICS",
-      caption = "Source: NHS Acute (Hospital) Trust Catchment Populations, Office for Health Improvement and Disparities"
+      title = "Estimated patient admissions from residents in ICS",
+      subtitle = "Based on all admissions between 2018/19 and 2020/21",
+      caption = "Source: NHS Acute (Hospital) Trust Catchment Populations,\nOffice for Health Improvement and Disparities"
+    )
+
+  return(p)
+}
+
+
+plot_hold_message <- function() {
+  p <- tibble::tibble(
+    x = 1,
+    y = 1,
+    text = stringr::str_wrap(
+      "To display future performance, please make area and metric selections and then enter scenario data below before pressing the 'Update' button on the left",
+      80
+    )
+  ) |>
+    ggplot(
+      aes(
+        x = x,
+        y = y
+      )
+    ) +
+    geom_text(
+      aes(
+        label = text
+      )
+    ) +
+    theme(
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      axis.ticks = element_blank(),
+      panel.background = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.line = element_blank(),
+      panel.border = element_rect(
+        colour = "black",
+        fill = NA,
+        size = 1
+      )
     )
 
   return(p)

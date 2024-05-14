@@ -20,7 +20,7 @@ mod_01_introduction_ui <- function(id) {
         "This tool has been developed using only publicly available data for the whole of England. These data are described in more detail on the 'Data' tab. The methods underpinning data processing and modelling can be found",
         a(tags$strong("here."), href = "https://nhs-bnssg-analytics.github.io/d_and_c/outputs/01_index.html"),
         "The analysis and modelling was done using R, and has been made publicly available",
-        a(tags$strong("here."), href = "https://github.com/nhs-bnssg-analytics/d_and_c")
+        a(tags$strong("here."), href = "https://github.com/nhs-bnssg-analytics/d_and_c"),
       )),
       column(width = 8, h2(("How to use the tool"))),
       column(width = 8, p("On the Scenario planner tab:")),

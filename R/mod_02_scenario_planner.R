@@ -215,8 +215,44 @@ mod_02_scenario_planner_ui <- function(id){
           label = "Update predictions"
         )
       ),
-      plotOutput(ns("performance_plot"))
+      plotOutput(
+        ns("performance_plot"),
+        height = '60vh'
+      )
     )
+  )
+
+  scenario_card <- card(
+    card_header(
+      "Scenario selector",
+      class = "scenario-card-header"
+    ),
+    sliderInput(
+      inputId = ns("horizon_selector"),
+      label = "Select number of years for planning",
+      min = 1,
+      max = 10,
+      value = 5,
+      step = 1
+    ),
+    bslib::navset_card_tab(
+      full_screen = TRUE,
+      bslib::nav_panel(
+        title = "Template scenarios",
+        layout_column_wrap(
+          width = "400px",
+          # height = 500,
+          last_known_card,
+          percent_card,
+          linear_card
+        )
+      ),
+      bslib::nav_panel(
+        title = "Custom scenario",
+        custom_template_card
+      )
+    )
+
   )
 
   tagList(
@@ -229,32 +265,7 @@ mod_02_scenario_planner_ui <- function(id){
         ),
         performance_card,
         # begin the section for selecting the scenario inputs
-        h2("Scenario selector"),
-        sliderInput(
-          inputId = ns("horizon_selector"),
-          label = "Select number of years for planning",
-          min = 1,
-          max = 10,
-          value = 5,
-          step = 1
-        ),
-        bslib::navset_card_tab(
-          full_screen = TRUE,
-          bslib::nav_panel(
-            title = "Template scenarios",
-            layout_column_wrap(
-              width = "400px",
-              # height = 500,
-              last_known_card,
-              percent_card,
-              linear_card
-            )
-          ),
-          bslib::nav_panel(
-            title = "Custom scenario",
-            custom_template_card
-          )
-        )
+        scenario_card
       )
     )
   )
@@ -304,32 +315,8 @@ mod_02_scenario_planner_server <- function(id, r){
           r$scenario_data[[nm]] <- default_data[[nm]]
         }
 
-        # which scenarios have a checkbox saying to include in the chart
-        display_scenarios <- c(
-          last_known = input$display_last_known,
-          percent = input$display_percent,
-          linear = input$display_linear,
-          custom = input$display_custom
-        )
-
-        update_predictions(
-          prediction_custom_scenario = input$custom_name,
-          model_outputs = model_outputs |>
-            lapply(
-              function(x) x[["wf"]]
-            ),
-          display_scenarios = display_scenarios,
-          r = r
-        )
-
-        # draw chart of historic data when ICS selection changes
-        r$performance_plot <- plot_performance(
-          historic_data = bind_rows(
-            r$ics_data,
-            r$predictions
-          ),
-          performance_metric = input$performance_metric_selection
-        )
+        # put holding message on display with instructions for what to do
+        r$performance_plot <- plot_hold_message()
     })
 
     observeEvent(
@@ -525,15 +512,24 @@ mod_02_scenario_planner_server <- function(id, r){
 
     })
 
-    # apply scenario through model to predict outcome
     observeEvent(
       c(input$display_last_known,
         input$display_linear,
         input$display_percent,
         input$display_custom,
-        input$model_scenario_button,
         input$apply_percent_change_button,
         input$apply_linear_button), {
+
+          r$performance_plot <- plot_hold_message()
+
+          output$performance_plot <- renderPlot({
+            r$performance_plot
+          }, res = 96)
+        })
+
+    # apply scenario through model to predict outcome
+    observeEvent(
+      input$model_scenario_button, {
 
         display_scenarios <- c(
           last_known = input$display_last_known,
