@@ -163,7 +163,7 @@ load_model_object <- function(type = NULL) {
 
   performance_metrics <- performance_metrics()
 
-  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_log_pi.rds")[performance_metrics]
+  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
 
   if (!is.null(type)) {
     type <- match.arg(
@@ -178,4 +178,11 @@ load_model_object <- function(type = NULL) {
   }
 
   return(model)
+}
+
+#' first year for forecasting
+#' @return integer for first year for forecasting
+#' @noRd
+first_year <- function() {
+  return(2024L)
 }

@@ -125,62 +125,40 @@ mod_02_scenario_planner_ui <- function(id){
       p("Select an option to pre-populate your custom scenario data below.")
     ),
     layout_column_wrap(
-      card(
-        class = "button-card",
-        card_body(
-          min_height = "100px",
-          bslib::input_task_button(
-            id = ns("last_known_value_button"),
-            label = "Last observed value",
-            label_busy = "Updating custom scenario...",
-            type = "secondary"
-          )
-        )
+      bslib::input_task_button(
+        id = ns("last_known_value_button"),
+        label = "Last observed value",
+        label_busy = "Updating custom scenario...",
+        type = "secondary"
       ),
-      card(
-        class = "button-card",
-        card_body(
-          min_height = "100px",
-          bslib::input_task_button(
-            id = ns("percent_change_button"),
-            label = "Percentage change",
-            label_busy = "Updating custom scenario...",
-            type = "secondary"
-          )
-        )
+      bslib::input_task_button(
+        id = ns("percent_change_button"),
+        label = "Percentage change",
+        label_busy = "Updating custom scenario...",
+        type = "secondary"
       ),
-      card(
-        class = "button-card",
-        card_body(
-          min_height = "100px",
-          bslib::input_task_button(
-            id = ns("linear_button"),
-            label = "Linear extrapolation",
-            label_busy = "Updating custom scenario...",
-            type = "secondary"
-          )
-        )
+      bslib::input_task_button(
+        id = ns("linear_button"),
+        label = "Linear extrapolation",
+        label_busy = "Updating custom scenario...",
+        type = "secondary"
       )
     ),
-    card(
-      card_body(
-        radioButtons(
-          inputId = ns("custom_display"),
-          label = "Which demand and capacity variables do you want to display below?",
-          width = "100%",
-          choices = c(
-            "All" = "all",
-            "Most important" = "important",
-            "Top 15 important" = "top_n"
-          ),
-          selected = "top_n"
-        )
+    radioButtons(
+      inputId = ns("custom_display"),
+      label = "Which demand and capacity variables do you want to display below?",
+      width = "100%",
+      choices = c(
+        "All" = "all",
+        "Most important" = "important",
+        "Top 15 important" = "top_n"
       ),
-      card_body(
-        min_height = "50vh",
-        max_height = "80vh",
-        DT::DTOutput(ns("scenario_data_custom"))
-      )
+      selected = "top_n"
+    ),
+    card_body(
+      min_height = "50vh",
+      max_height = "80vh",
+      DT::DTOutput(ns("scenario_data_custom"))
     )
   )
 
@@ -473,9 +451,14 @@ mod_02_scenario_planner_server <- function(id, r){
         rownames = FALSE,
         editable = list(
           target = "cell",
-          disable = list(columns = c(0, 1)), # disable editing metric and domain fields
+          disable = list(
+            columns = seq_len(
+              match(first_year(),
+                    names(r$scenario_data$custom_display)
+                  ) - 2
+              ), # disable editing metric and domain fields and previous year values
           numeric = "all" # allow only numeric values
-        ),
+        )),
         selection = "none", # don't need to be able to select rows
         colnames = c(
           "Metric" = "metric",
