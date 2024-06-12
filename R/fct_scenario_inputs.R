@@ -181,7 +181,9 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       names_from = !!sym("year"),
       values_from = !!sym("value")
     ) |>
-    check_scenario_inputs()
+    check_scenario_inputs(
+      historic_data = historic_data
+    )
 
   return(wide_metric_data)
 }
@@ -260,7 +262,6 @@ update_predictions <- function(prediction_custom_scenario, model_outputs, displa
       !!sym("metric")
     )
 
-  # browser()
   # create predictions for future years for each scenario
   future_years_predictions <- setNames(
     c("last_known", "percent", "linear", "custom"),
@@ -530,28 +531,65 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
 #'
 #' @param inputs wide tibble with a metric and domain field, and then all other
 #'   fields are years which contain values for each metric for that year
+#' @param historic_data tibble with columns for "domain", "metric", "year",
+#'   "value"
 #'
 #' @return tibble that is the same shape as the input tibble, but has converted
 #'   all metrics that are proportion to values between 0 and 100, and all
-#'   metrics must be positive
+#'   metrics must be positive. Also, ensures that no metrics go outside of the
+#'   historically seen range.
+#'
+#' @importFrom dplyr summarise left_join join_by
+#' @importFrom rlang sym
 #'
 #' @noRd
-check_scenario_inputs <- function(inputs) {
+check_scenario_inputs <- function(inputs, historic_data) {
+
+  historic_range <- historic_data |>
+    dplyr::summarise(
+      min_val = min(value, na.rm = TRUE),
+      max_val = max(value, na.rm = TRUE),
+      .by = !!sym("metric")
+    )
+
+  reference_metrics <- c("metric", "domain", "min_val", "max_val")
+
   inputs <- inputs |>
+    left_join(
+      historic_range,
+      by = join_by(
+        !!sym("metric")
+      )
+    ) |>
     mutate(
       across(
         # convert any negative values to 0
-        !all_of(c("metric", "domain")),
+        !all_of(reference_metrics),
         \(x) dplyr::if_else(x < 0, 0, x)
       ),
       across(
         # for metrics that should be limited to a proportion convert values that
         # are greater than 100 to 100
-        !all_of(c("metric", "domain")),
+        !all_of(reference_metrics),
         \(x) dplyr::if_else(
           grepl("proportion|prevalence|%", !!sym("metric"), ignore.case = TRUE) &
             x > 100, 100, x)
+      ),
+      across(
+        # metrics shouldn't go outside of historic bounds
+        !all_of(reference_metrics),
+        \(x) dplyr::if_else(
+          x > !!sym("max_val"), !!sym("max_val"),
+          dplyr::if_else(
+            x < !!sym("min_val"),
+            !!sym("min_val"),
+            x
+          )
+        )
       )
+    ) |>
+    select(
+      !c("min_val", "max_val")
     )
 
   return(inputs)

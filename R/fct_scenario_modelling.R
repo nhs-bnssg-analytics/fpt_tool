@@ -295,19 +295,23 @@ update_scenario_performance_data_with_predictions <- function(scenario_data, pre
 #'   a negative value. If they do, then the model is considered a "difference
 #'   from previous" model
 #'
-#' @importFrom hardhat extract_mold
+#' @importFrom tune extract_mold extract_fit_engine
 #' @importFrom purrr pluck
-#' @importFrom dplyr tibble
+#' @importFrom dplyr tibble where select
 #' @noRd
 model_descriptions <- function(model) {
   engine <- model |>
-    hardhat::extract_fit_engine() |>
+    tune::extract_fit_engine() |>
     class()
 
   negative_values <- model |>
-    hardhat::extract_mold() |>
-    purrr::pluck("predictors") |>
-    (\(x) x < 0)() |>
+    # tune::extract_mold() |>
+    purrr::pluck("pre", "actions", "recipe", "recipe", "template") |>
+    select(!any_of(c("total_cases", "month", "quarter", "year", "nhs_region"))) |>
+    purrr::map_lgl(
+      # test if any column has a negative value in it
+      \(x) any(x < 0, na.rm = TRUE)
+    ) |>
     any()
 
   model_type <- ifelse(negative_values, "difference", "proportion")
@@ -340,7 +344,7 @@ model_descriptions <- function(model) {
 #' @importFrom dplyr select all_of bind_cols mutate lag row_number pick
 #'   everything
 #' @importFrom rlang sym
-#' @importFrom hardhat extract_fit_parsnip
+#' @importFrom tune extract_fit_parsnip
 #' @noRd
 make_predictions <- function(model, input_data) {
 
@@ -382,7 +386,7 @@ make_predictions <- function(model, input_data) {
 
   if (grepl("glm", model_configuration$engine)) {
     lambda <- wf |>
-      hardhat::extract_fit_parsnip() |>
+      tune::extract_fit_parsnip() |>
       pluck("spec", "args", "penalty")
 
     prediction <- predict(

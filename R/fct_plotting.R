@@ -15,7 +15,8 @@ plot_performance <- function(historic_data, performance_metric) {
 
   plot <- historic_data |>
     filter(
-      !!sym("metric") %in% performance_metric
+      !!sym("metric") %in% performance_metric,
+      !!sym("year") >= 2016
     ) |>
     tidyr::separate_wider_delim(
       cols = !!sym("value_type"),

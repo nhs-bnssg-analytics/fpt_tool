@@ -25,6 +25,9 @@ mod_02_scenario_planner_ui <- function(id){
       inputId = ns("display_last_known"),
       label = "Display on chart",
       value = TRUE
+    ),
+    card_body(
+      p("Apply the last observed value for all input metrics to future years.")
     )
   )
 
@@ -41,7 +44,7 @@ mod_02_scenario_planner_ui <- function(id){
     ),
     card_body(
       p("Apply a year on year percentage change to the last observed value for each metric to populate future years for the custom scenario."),
-      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
+      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 100.")
     ),
     card_body(
       class = "card-body-input",
