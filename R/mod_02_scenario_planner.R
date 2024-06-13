@@ -254,7 +254,7 @@ mod_02_scenario_planner_ui <- function(id){
 
 #' scenario_planner Server Functions
 #' @noRd
-#' @importFrom DT datatable renderDT formatRound editData
+#' @importFrom DT datatable renderDT formatRound editData JS
 #' @importFrom dplyr tibble distinct anti_join join_by
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
@@ -456,9 +456,10 @@ mod_02_scenario_planner_server <- function(id, r){
               match(first_year(),
                     names(r$scenario_data$custom_display)
                   ) - 2
-              ), # disable editing metric and domain fields and previous year values
+              )
+            ), # disable editing metric and domain fields and previous year values
           numeric = "all" # allow only numeric values
-        )),
+        ),
         selection = "none", # don't need to be able to select rows
         colnames = c(
           "Metric" = "metric",
@@ -466,7 +467,22 @@ mod_02_scenario_planner_server <- function(id, r){
         ),
         options = list(
           pageLength = 25,
-          autoWidth = TRUE
+          autoWidth = TRUE,
+          columnDefs = list(
+            list(
+              targets = 0, # 1st column (0-indexed)
+              createdCell = DT::JS(
+                "function(td, cellData, rowData, row, col) {",
+                "$(td).attr('title', cellData);",
+                "}"
+                # "function(td, cellData, rowData, row, col) {",
+                # # "let words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];",
+                # # "let number = parseInt(cellData);",
+                # "$(td).attr('title', cellData);",
+                # "}"
+              )
+            )
+          )
         )
       ) |>
         DT::formatRound(
