@@ -160,6 +160,14 @@ mod_02_scenario_planner_ui <- function(id){
       label = "Download custom input data",
       width = "300px"
     ),
+    fileInput(
+      ns("custom_scenario_file"),
+      "Choose custom scenario CSV file",
+      accept = c("text/csv",
+                 "text/comma-separated-values,
+                       .csv"),
+      width = "300px"
+    ),
     card_body(
       min_height = "50vh",
       max_height = "80vh",
@@ -264,7 +272,7 @@ mod_02_scenario_planner_ui <- function(id){
 #' scenario_planner Server Functions
 #' @noRd
 #' @importFrom DT datatable renderDT formatRound editData JS
-#' @importFrom dplyr tibble distinct anti_join join_by
+#' @importFrom dplyr tibble distinct anti_join join_by as_tibble
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
 #' @importFrom shiny downloadHandler
@@ -584,7 +592,44 @@ mod_02_scenario_planner_server <- function(id, r){
         )
       }
     )
-  })
 
+    # loads custom file into the database to override the r$scenario_data$custom dataset
+    observeEvent(
+      input$custom_scenario_file, {
+
+        if (is.null(input$custom_scenario_file)) {
+          return(r$scenario_data$custom)
+        }
+
+        # read in new file
+        file_custom_data <- read.csv(
+          input$custom_scenario_file$datapath,
+          check.names = FALSE,
+          header = TRUE
+        ) |>
+          dplyr::as_tibble()
+
+        # perform file checks
+        pass_checks <- check_custom_inputs(
+          r$scenario_data$custom,
+          file_custom_data
+        )
+
+        if (pass_checks != "pass") {
+          # message if checks don't pass
+          showModal(
+            modalDialog(
+              title = "Error",
+              pass_checks,
+              easyClose = TRUE,
+              footer = NULL
+            )
+          )
+        } else {
+          # load custom file into database if they pass
+          r$scenario_data$custom <- file_custom_data
+        }
+    })
+  })
 }
 
