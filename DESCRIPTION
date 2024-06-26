@@ -28,6 +28,7 @@ Imports:
     stringr,
     tibble,
     tidyr,
+    tidytext,
     tune
 Suggests: 
     devtools,

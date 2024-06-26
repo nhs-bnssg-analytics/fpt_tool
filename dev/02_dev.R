@@ -22,12 +22,14 @@ attachment::att_amend_desc()
 ## Create a module infrastructure in R/
 golem::add_module(name = "01_introduction", with_test = TRUE) # Name of the module
 golem::add_module(name = "02_scenario_planner", with_test = TRUE) # Name of the module
+golem::add_module(name = "03_model_info", with_test = TRUE) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
 golem::add_fct("data_loading", with_test = TRUE)
 golem::add_fct("plotting", with_test = TRUE)
 golem::add_utils("lookups", with_test = TRUE)
+golem::add_utils("data", with_test = TRUE)
 golem::add_fct("scenario_inputs", with_test = TRUE)
 golem::add_fct("scenario_modelling", with_test = TRUE)
 

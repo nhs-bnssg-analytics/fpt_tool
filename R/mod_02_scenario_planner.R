@@ -24,7 +24,7 @@ mod_02_scenario_planner_ui <- function(id){
     checkboxInput(
       inputId = ns("display_last_known"),
       label = "Display on chart",
-      value = TRUE
+      value = FALSE
     ),
     card_body(
       p("Apply the last observed value for all input metrics to future years.")
@@ -40,7 +40,7 @@ mod_02_scenario_planner_ui <- function(id){
     checkboxInput(
       inputId = ns("display_percent"),
       label = "Display on chart",
-      value = TRUE
+      value = FALSE
     ),
     card_body(
       p("Apply a year on year percentage change to the last observed value for each metric to populate future years for the custom scenario."),
@@ -76,7 +76,7 @@ mod_02_scenario_planner_ui <- function(id){
     checkboxInput(
       inputId = ns("display_linear"),
       label = "Display on chart",
-      value = TRUE
+      value = FALSE
     ),
     card_body(
       p("Extrapolate the last observed values for each metric to populate future years for the custom scenario."),
@@ -163,6 +163,10 @@ mod_02_scenario_planner_ui <- function(id){
   )
 
   selector_card <- card(
+    card_header(
+      "Make ICS and metric selection",
+      class = "default-card-header"
+    ),
     selectInput(
       ns("ics_selection"),
       "Select Integrated Care System",
@@ -186,7 +190,7 @@ mod_02_scenario_planner_ui <- function(id){
   performance_card <- card(
     card_header(
       "Performance viewer",
-      class = "scenario-card-header"
+      class = "default-card-header"
     ),
     bslib::layout_sidebar(
       sidebar = bslib::sidebar(
@@ -206,7 +210,7 @@ mod_02_scenario_planner_ui <- function(id){
   scenario_card <- card(
     card_header(
       "Scenario selector",
-      class = "scenario-card-header"
+      class = "default-card-header"
     ),
     sliderInput(
       inputId = ns("horizon_selector"),

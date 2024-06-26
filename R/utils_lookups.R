@@ -163,7 +163,8 @@ load_model_object <- function(type = NULL) {
 
   performance_metrics <- performance_metrics()
 
-  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
+  # model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
+  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi.rds")[performance_metrics]
 
   if (!is.null(type)) {
     type <- match.arg(

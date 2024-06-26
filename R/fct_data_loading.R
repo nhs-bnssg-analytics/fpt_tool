@@ -1,29 +1,4 @@
-#' metadata for the metrics used in modelling
-#'
-#' @description obtain metadata information for the metrics
-#'
-#' @return table of metric, domain, numerator and denominator descriptions
-#' @importFrom dplyr filter select
-#' @importFrom rlang sym
-#' @noRd
-metadata <- function() {
-  meta <- read.csv(
-    "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/configuration-table.csv",
-    encoding = "latin1") |>
-    dplyr::filter(
-      !!sym("status") == "include" |
-        (!!sym("domain") == "Performance" &
-           !!sym("status") == "modelled")
-    ) |>
-    dplyr::select(
-      "metric",
-      "domain",
-      "numerator_description",
-      "denominator_description"
-    )
 
-  return(meta)
-}
 
 #' Obtain performance metrics
 #'
@@ -32,7 +7,7 @@ metadata <- function() {
 #' @importFrom dplyr filter pull
 #' @noRd
 performance_metrics <- function() {
-  metrics <- metadata() |>
+  metrics <- metadata |>
     filter(
       !!sym("domain") == "Performance"#,
     ) |>
@@ -50,13 +25,11 @@ performance_metrics <- function() {
 #'   and metric
 #' @param ics_code string; health code for ics of interest
 #' @param domain_type combination of "Performance", "Demand" or "Capacity"
-#' @param broad_age_bands logical; whether to use broad age bands (TRUE) or not
-#'   (FALSE)
 #' @importFrom purrr map_df
 #' @importFrom dplyr distinct pull filter arrange inner_join join_by mutate
 #' @importFrom rlang sym
 #' @noRd
-ics_data <- function(ics_code, domain_type = NULL, broad_age_bands = TRUE) {
+ics_data <- function(ics_code, domain_type = NULL) {
 
   if (!is.null(domain_type)) {
     if(!any(domain_type %in% c("Performance", "Demand", "Capacity"))) {
@@ -65,62 +38,21 @@ ics_data <- function(ics_code, domain_type = NULL, broad_age_bands = TRUE) {
   }
 
 
-  metrics <- metadata()
-
-  if (!is.null(domain_type)) {
-    metrics <- metrics |>
-      filter(
-        !!sym("domain") %in% domain_type
-      )
-  }
-  metrics <- metrics |>
-    distinct(
-      !!sym("metric"),
-      !!sym("domain")
-    )
-
-  ics_timeseries <- list.files(
-    "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/",
-    full.names = TRUE
-  ) |>
-    (\(x) x[!grepl("configuration-table", x)])() |>
-    purrr::map_df(
-      read.csv
-    ) |>
+  ics_timeseries_filtered <- ics_timeseries |>
     filter(
-      grepl("annual", !!sym("frequency")),
       !!sym("org") %in% ics_code
-    )
-
-  if (broad_age_bands == TRUE) {
-    ics_timeseries <- replace_narrow_age_bands(ics_timeseries)
-
-  }
-
-  ics_timeseries <- ics_timeseries |>
-    inner_join(
-      metrics,
-      by = join_by(!!sym("metric"))
-    ) |>
-    arrange(
-      !!sym("metric"),
-      !!sym("year"),
-      !!sym("org")
-    ) |>
-    select(
-      "year",
-      "org",
-      "domain",
-      "metric",
-      "numerator",
-      "denominator",
-      "value"
     ) |>
     mutate(
       value_type = "Observed"
     )
 
-  return(ics_timeseries)
+  if (!is.null(domain_type)) {
+    ics_timeseries_filtered <- ics_timeseries_filtered |>
+      filter(
+        !!sym("domain") %in% domain_type
+      )
+  }
+  return(ics_timeseries_filtered)
 }
 
 

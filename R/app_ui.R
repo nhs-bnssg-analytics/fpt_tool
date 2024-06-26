@@ -20,6 +20,10 @@ app_ui <- function(request) {
         nav_panel(
           title = "Scenario planner",
           mod_02_scenario_planner_ui("02_scenario_planner_1")
+        ),
+        nav_panel(
+          title = "How good are the models?",
+          mod_03_model_info_ui("03_model_info_1")
         )
       )
     )

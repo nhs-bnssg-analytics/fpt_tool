@@ -14,7 +14,7 @@ h2 {
   border-left-width: 5px;
 }
 
-.scenario-card-header {
+.default-card-header {
   padding: 4px;
   font-weight: bold;
   background-color: rgb(200, 200, 200);
