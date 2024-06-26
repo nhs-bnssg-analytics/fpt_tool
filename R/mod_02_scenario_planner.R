@@ -6,7 +6,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList
+#' @importFrom shiny NS tagList downloadButton
 #' @importFrom bslib navset_card_tab input_task_button card card_header
 #'   card_body layout_column_wrap layout_sidebar sidebar
 #' @importFrom DT DTOutput
@@ -155,6 +155,11 @@ mod_02_scenario_planner_ui <- function(id){
       ),
       selected = "top_n"
     ),
+    downloadButton(
+      outputId = ns("download_custom_scenario_inputs"),
+      label = "Download custom input data",
+      width = "300px"
+    ),
     card_body(
       min_height = "50vh",
       max_height = "80vh",
@@ -262,6 +267,7 @@ mod_02_scenario_planner_ui <- function(id){
 #' @importFrom dplyr tibble distinct anti_join join_by
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
+#' @importFrom shiny downloadHandler
 #' @param r a `reactiveValues()` list with ics_cd (string, 3 letter code for
 #'   ics), ics_data (tibble containing observed data for performance metrics for
 #'   the selected ICS), performance_plot (ggplot time series of observed and
@@ -567,6 +573,17 @@ mod_02_scenario_planner_server <- function(id, r){
         }, res = 96)
     })
 
+    # Download a csv of the custom scenario data table
+    output$download_custom_scenario_inputs <- downloadHandler(
+      filename = "custom_input_data.csv",
+      content = function(file) {
+        write.csv(
+          r$scenario_data$custom,
+          file,
+          row.names = FALSE
+        )
+      }
+    )
   })
 
 }
