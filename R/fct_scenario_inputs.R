@@ -563,6 +563,18 @@ check_scenario_inputs <- function(inputs, historic_data) {
     ) |>
     mutate(
       across(
+        # metrics shouldn't go outside of historic bounds
+        !all_of(reference_metrics),
+        \(x) dplyr::if_else(
+          x > !!sym("max_val"), !!sym("max_val"),
+          dplyr::if_else(
+            x < !!sym("min_val"),
+            !!sym("min_val"),
+            x
+          )
+        )
+      ),
+      across(
         # convert any negative values to 0
         !all_of(reference_metrics),
         \(x) dplyr::if_else(x < 0, 0, x)
@@ -574,18 +586,6 @@ check_scenario_inputs <- function(inputs, historic_data) {
         \(x) dplyr::if_else(
           grepl("proportion|prevalence|%", !!sym("metric"), ignore.case = TRUE) &
             x > 100, 100, x)
-      ),
-      across(
-        # metrics shouldn't go outside of historic bounds
-        !all_of(reference_metrics),
-        \(x) dplyr::if_else(
-          x > !!sym("max_val"), !!sym("max_val"),
-          dplyr::if_else(
-            x < !!sym("min_val"),
-            !!sym("min_val"),
-            x
-          )
-        )
       )
     ) |>
     select(

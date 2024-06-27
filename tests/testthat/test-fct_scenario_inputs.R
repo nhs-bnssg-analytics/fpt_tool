@@ -235,20 +235,68 @@ test_that("create_scenario_table works as expected", {
 
 
 test_that("the scenario data checker function ensures all values that are not real have been changed", {
-  inputs <- tibble(
-    metric = c(
-      "proportion of a",
-      "prevalence of purple",
-      "fte per 1000",
-      "sixty seven",
-      "% 70"
-    ),
-    domain = c("Capacity", "Performance", "Demand", "Capacity", "Demand"),
-    `2021` = sample(110:200, 5),
-    `2022` = sample(-10:-1, 5),
-    `2023` = sample(2:100, 5)
+  dummy_metrics <- c(
+    "proportion of a",
+    "prevalence of purple",
+    "fte per 1000",
+    "sixty seven",
+    "% 70"
   )
-  test <- check_scenario_inputs(inputs)
+
+  inputs <- tibble(
+    metric = dummy_metrics,
+    domain = c("Capacity", "Performance", "Demand", "Capacity", "Demand")
+  ) |>
+    cross_join(
+      tibble(
+        year = 2021:2023
+      )
+    ) |>
+    mutate(
+      value = purrr::map_dbl(
+        metric,
+        ~ case_when(
+          .x == dummy_metrics[1] ~ sample(110:200, 1),
+          .x == dummy_metrics[2] ~ sample(5:20, 1),
+          .x == dummy_metrics[3] ~ sample(-15:-1, 1),
+          .x == dummy_metrics[4] ~ sample(300:600, 1),
+          .x == dummy_metrics[5] ~ sample(0:10, 1),
+          .default = NA_real_
+        )
+      )
+    ) |>
+    tidyr::pivot_wider(
+      names_from = year,
+      values_from = value
+    )
+
+  historic_data <- inputs |>
+    distinct(
+      metric, domain
+    ) |>
+    cross_join(
+      tibble(
+        year = 2015:2020
+      )
+    ) |>
+    mutate(
+      value = purrr::map_dbl(
+        metric,
+        ~ case_when(
+          .x == dummy_metrics[1] ~ sample(110:200, 1),
+          .x == dummy_metrics[2] ~ sample(5:20, 1),
+          .x == dummy_metrics[3] ~ sample(-15:-1, 1),
+          .x == dummy_metrics[4] ~ sample(300:600, 1),
+          .x == dummy_metrics[5] ~ sample(0:10, 1),
+          .default = NA_real_
+        )
+      )
+    )
+
+  test <- check_scenario_inputs(
+    inputs,
+    historic_data = historic_data
+  )
 
   expect_equal(
     dim(inputs),
