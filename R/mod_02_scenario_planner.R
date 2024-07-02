@@ -109,11 +109,6 @@ mod_02_scenario_planner_ui <- function(id){
       "Populate a custom scenario",
       class = "scenario-card-header"
     ),
-    checkboxInput(
-      inputId = ns("display_custom"),
-      label = "Display on chart",
-      value = TRUE
-    ),
     card_body(
       textInput(
         inputId = ns("custom_name"),
@@ -125,6 +120,7 @@ mod_02_scenario_planner_ui <- function(id){
       p("Select an option to pre-populate your custom scenario data below.")
     ),
     layout_column_wrap(
+      width = 0.2,
       bslib::input_task_button(
         id = ns("last_known_value_button"),
         label = "Last observed value",
@@ -158,7 +154,7 @@ mod_02_scenario_planner_ui <- function(id){
     downloadButton(
       outputId = ns("download_custom_scenario_inputs"),
       label = "Download custom input data",
-      width = "300px"
+      style = "width:25%"
     ),
     fileInput(
       ns("custom_scenario_file"),
@@ -167,6 +163,21 @@ mod_02_scenario_planner_ui <- function(id){
                  "text/comma-separated-values,
                        .csv"),
       width = "300px"
+    ),
+    layout_column_wrap(
+      width = 0.25,
+      bslib::input_task_button(
+        id = ns("btn_add_scenario_prediction"),
+        label = "Make predictions and add to chart",
+        label_busy = "Predicting...",
+        type = "secondary"
+      ),
+      bslib::input_task_button(
+        id = ns("btn_remove_scenario_prediction"),
+        label = "Remove scenarios from chart",
+        label_busy = "Removing...",
+        type = "secondary"
+      )
     ),
     card_body(
       min_height = "50vh",
@@ -205,18 +216,14 @@ mod_02_scenario_planner_ui <- function(id){
       "Performance viewer",
       class = "default-card-header"
     ),
-    bslib::layout_sidebar(
-      sidebar = bslib::sidebar(
-        open = TRUE,
-        input_task_button(
-          id = ns("model_scenario_button"),
-          label = "Update predictions"
-        )
-      ),
-      plotOutput(
-        ns("performance_plot"),
-        height = '60vh'
-      )
+    plotOutput(
+      ns("performance_plot"),
+      height = '60vh'
+    ),
+    downloadButton(
+      ns("report_btn"),
+      "Generate report",
+      style = "width:25%;"
     )
   )
 
@@ -303,6 +310,9 @@ mod_02_scenario_planner_server <- function(id, r){
           domain_type = "Performance"
         )
 
+        # remove all previously predicted data
+        r$predictions <- NULL
+
         default_data <- reset_scenarios(
           ics_cd = r$ics_cd,
           horizon = input$horizon_selector,
@@ -337,7 +347,7 @@ mod_02_scenario_planner_server <- function(id, r){
       r$trust_icb_pie_chart
     })
 
-    # scenario data -----------------------------------------------------------
+    # scenario data tab, editing and modelling predictions ---------------------
 
     # calculate the scenario data if "last known value" selected
     observeEvent(
@@ -359,8 +369,6 @@ mod_02_scenario_planner_server <- function(id, r){
           table_options = input$custom_display,
           r = r
         )
-
-
         # print("last_known_year")
       })
 
@@ -410,40 +418,6 @@ mod_02_scenario_planner_server <- function(id, r){
         )
         # print("linear")
       })
-
-    # update the performance chart when changes to the linear scenario is
-    # applied
-    observeEvent(
-      input$apply_linear_button, {
-
-        linear_change <- scenario_inputs(
-          ics_code = r$ics_cd,
-          horizon = input$horizon_selector,
-          scenario = "linear",
-          linear_years = input$linear_val
-        )
-
-        r$scenario_data$linear <- linear_change
-
-      }
-    )
-
-    # update the performance chart when changes to the percent change scenario
-    # is applied
-    observeEvent(
-      input$apply_percent_change_button, {
-
-        percent_change <- scenario_inputs(
-          ics_code = r$ics_cd,
-          horizon = input$horizon_selector,
-          scenario = "percent",
-          percent = input$percent_change_val
-        )
-
-        r$scenario_data$percent <- percent_change
-
-      }
-    )
 
     # pass scenario data table to output
     output$scenario_data_custom <- DT::renderDT({
@@ -532,54 +506,63 @@ mod_02_scenario_planner_server <- function(id, r){
 
     })
 
+    # model the current scenario and add it to the charts
     observeEvent(
-      c(input$display_last_known,
-        input$display_linear,
-        input$display_percent,
-        input$display_custom,
-        input$apply_percent_change_button,
-        input$apply_linear_button), {
+      input$btn_add_scenario_prediction, {
 
-          r$performance_plot <- plot_hold_message()
-
-          output$performance_plot <- renderPlot({
-            r$performance_plot
-          }, res = 96)
-        })
-
-    # apply scenario through model to predict outcome
-    observeEvent(
-      input$model_scenario_button, {
-
-        display_scenarios <- c(
-          last_known = input$display_last_known,
-          percent = input$display_percent,
-          linear = input$display_linear,
-          custom = input$display_custom
-        )
-
-        update_predictions(
+        update_predictions_and_plot_r(
           prediction_custom_scenario = input$custom_name,
           model_outputs = model_outputs |>
             lapply(
               function(x) x[["wf"]]
             ),
-          display_scenarios = display_scenarios,
+          scenario_name = "custom",
+          performance_metrics = input$performance_metric_selection,
           r = r
-        )
-
-        r$performance_plot <- plot_performance(
-          historic_data = bind_rows(
-            r$ics_data,
-            r$predictions
-          ),
-          performance_metric = input$performance_metric_selection
         )
 
         output$performance_plot <- renderPlot({
           r$performance_plot
         }, res = 96)
-    })
+      })
+
+    # remove current scenario from chart
+    observeEvent(
+      input$btn_remove_scenario_prediction, {
+
+        if (!is.null(r$predictions)) {
+          r$predictions <- r$predictions |>
+            filter(
+              !!sym("value_type") != paste0(
+                "Prediction - ",
+                input$custom_name
+              )
+            )
+
+          if (any(grepl("Prediction", r$predictions$value_type))) {
+            r$performance_plot <- plot_performance(
+              historic_data = bind_rows(
+                r$ics_data,
+                r$predictions
+              ),
+              performance_metric = input$performance_metric_selection
+            )
+          } else {
+            r$predictions <- NULL
+            r$performance_plot <- plot_hold_message()
+          }
+        } else {
+          r$performance_plot <- plot_hold_message()
+        }
+
+        output$performance_plot <- renderPlot({
+          r$performance_plot
+        }, res = 96)
+      })
+
+
+# Exporting and importing data to the custom scenario table ---------------
+
 
     # Download a csv of the custom scenario data table
     output$download_custom_scenario_inputs <- downloadHandler(
@@ -629,7 +612,225 @@ mod_02_scenario_planner_server <- function(id, r){
           # load custom file into database if they pass
           r$scenario_data$custom <- file_custom_data
         }
-    })
+      })
+
+# Template scenarios tab; adding and removing from chart ------------------
+
+    # Update charts depending on whether the "display linear" check box is
+    # selected or not
+    observeEvent(
+      input$display_linear, {
+        if (input$display_linear) {
+          update_predictions_and_plot_r(
+            prediction_custom_scenario = input$custom_name,
+            model_outputs = model_outputs |>
+              lapply(
+                function(x) x[["wf"]]
+              ),
+            scenario_name = "linear",
+            performance_metrics = input$performance_metric_selection,
+            r = r
+          )
+        } else if (input$display_linear == FALSE) {
+          if (!is.null(r$predictions)) {
+            r$predictions <- r$predictions |>
+              filter(
+                !!sym("value_type") != "Prediction - linear extrapolation"
+              )
+
+            if (any(grepl("Prediction", r$predictions$value_type))) {
+              r$performance_plot <- plot_performance(
+                historic_data = bind_rows(
+                  r$ics_data,
+                  r$predictions
+                ),
+                performance_metric = input$performance_metric_selection
+              )
+            } else {
+              r$predictions <- NULL
+              r$performance_plot <- plot_hold_message()
+            }
+          } else {
+            r$performance_plot <- plot_hold_message()
+          }
+        }
+
+
+        output$performance_plot <- renderPlot({
+          r$performance_plot
+        }, res = 96)
+      }
+    )
+    # update the performance chart when changes to the linear scenario is
+    # applied
+    observeEvent(
+      input$apply_linear_button, {
+
+        linear_change <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "linear",
+          linear_years = input$linear_val
+        )
+
+        r$scenario_data$linear <- linear_change
+
+        shiny::updateCheckboxInput(
+          inputId = "display_linear",
+          value = FALSE
+        )
+        shiny::updateCheckboxInput(
+          inputId = "display_linear",
+          value = TRUE
+        )
+      }
+    )
+
+    # Update charts depending on whether the "display percent" check box is
+    # selected or not
+    observeEvent(
+      input$display_percent, {
+        if (input$display_percent) {
+          update_predictions_and_plot_r(
+            prediction_custom_scenario = input$custom_name,
+            model_outputs = model_outputs |>
+              lapply(
+                function(x) x[["wf"]]
+              ),
+            scenario_name = "percent",
+            performance_metrics = input$performance_metric_selection,
+            r = r
+          )
+        } else if (input$display_percent == FALSE) {
+          if (!is.null(r$predictions)) {
+            # browser()
+            r$predictions <- r$predictions |>
+              filter(
+                !!sym("value_type") != "Prediction - percent change"
+              )
+
+            if (any(grepl("Prediction", r$predictions$value_type))) {
+              r$performance_plot <- plot_performance(
+                historic_data = bind_rows(
+                  r$ics_data,
+                  r$predictions
+                ),
+                performance_metric = input$performance_metric_selection
+              )
+            } else {
+              r$predictions <- NULL
+              r$performance_plot <- plot_hold_message()
+            }
+          } else {
+            r$performance_plot <- plot_hold_message()
+          }
+        }
+
+        output$performance_plot <- renderPlot({
+          r$performance_plot
+        }, res = 96)
+      }
+    )
+    # update the performance chart when changes to the percent scenario is
+    # applied
+    observeEvent(
+      input$apply_percent_change_button, {
+
+        percent_change <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "percent",
+          percent = input$percent_change_val
+        )
+
+        r$scenario_data$percent <- percent_change
+
+        shiny::updateCheckboxInput(
+          inputId = "display_percent",
+          value = FALSE
+        )
+        shiny::updateCheckboxInput(
+          inputId = "display_percent",
+          value = TRUE
+        )
+      }
+    )
+
+    # Update charts depending on whether the "display last_known" check box is
+    # selected or not
+    observeEvent(
+      input$display_last_known, {
+        if (input$display_last_known) {
+          update_predictions_and_plot_r(
+            prediction_custom_scenario = input$custom_name,
+            model_outputs = model_outputs |>
+              lapply(
+                function(x) x[["wf"]]
+              ),
+            scenario_name = "last_known",
+            performance_metrics = input$performance_metric_selection,
+            r = r
+          )
+        } else if (input$display_percent == FALSE) {
+          if (!is.null(r$predictions)) {
+            r$predictions <- r$predictions |>
+              filter(
+                !!sym("value_type") != "Prediction - last known value"
+              )
+
+            if (any(grepl("Prediction", r$predictions$value_type))) {
+              r$performance_plot <- plot_performance(
+                historic_data = bind_rows(
+                  r$ics_data,
+                  r$predictions
+                ),
+                performance_metric = input$performance_metric_selection
+              )
+            } else {
+              r$predictions <- NULL
+              r$performance_plot <- plot_hold_message()
+            }
+          } else {
+            r$performance_plot <- plot_hold_message()
+          }
+        }
+
+        output$performance_plot <- renderPlot({
+          r$performance_plot
+        }, res = 96)
+      }
+    )
+
+
+
+# Reporting from the chart ------------------------------------------------
+
+    output$report_btn <- downloadHandler(
+      filename <-  "myreport.docx",
+      content = function(file) {
+        tempReport <- file.path(tempdir(), "skeleton.Rmd")
+
+        file.copy(
+          "inst/rmarkdown/templates/scenario-report/skeleton/skeleton.Rmd",
+          tempReport,
+          overwrite = TRUE
+        )
+        params <- list(
+          performance_plot = r$performance_plot,
+          prediction_data = r$predictions,
+          scenario_data = r$scenario_data
+        )
+        rmarkdown::render(
+          tempReport,
+          output_file = file,
+          params = params,
+          envir = new.env(parent = globalenv())
+        )
+
+      }
+    )
   })
+
+
 }
 

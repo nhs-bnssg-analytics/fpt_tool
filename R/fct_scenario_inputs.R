@@ -234,17 +234,18 @@ reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
 
 }
 
-#' Update the predictions tibble in the r object for plotting
+#' Update the predictions tibble for individual scenario in the r object for
+#' plotting, following by updates to the performance plot
 #'
 #' @param prediction_custom_scenario character(1); the name of the custom
 #'   scenario which is used in the chart at the top of the app
 #' @param model_outputs list object containing one item for each performance
 #'   metric that has been modelled. Within that item is a single workflow object
 #'   related to that model
-#' @param display_scenarios list where each item is named based on the scenario
-#'   (last_known, linear, percent and custom). The values for each item in the
-#'   list are TRUE or FALSE depending on whether or not they need to be
-#'   displayed in the charts
+#' @param scenario_name character(1); one of "last_known", "linear", "percent"
+#'   or "custom"
+#' @param performance_metrics character vector of the names of the performance
+#'   metrics to model the predictions for
 #' @param r
 #'
 #' @return updates the "predictions" item of the r object with a table of values
@@ -254,56 +255,129 @@ reset_scenarios <- function(ics_cd, horizon, percent, linear_years) {
 #' @importFrom dplyr distinct anti_join join_by cross_join bind_rows
 #' @importFrom purrr map_df
 #' @noRd
-update_predictions <- function(prediction_custom_scenario, model_outputs, display_scenarios, r) {
-  # select years we have observed data for the performance metric
-  observed_data <- r$ics_data |>
-    distinct(
-      !!sym("year"),
-      !!sym("metric")
-    )
+update_predictions_and_plot_r <- function(prediction_custom_scenario, model_outputs,
+                                 scenario_name, performance_metrics, r) {
+  # browser()
 
-  # create predictions for future years for each scenario
-  future_years_predictions <- setNames(
-    c("last_known", "percent", "linear", "custom"),
-    nm = c(
-      "Prediction - last known value",
-      "Prediction - percent change",
-      "Prediction - linear extrapolation",
-      paste0("Prediction - ", prediction_custom_scenario)
+  scenario_name <- match.arg(
+    scenario_name,
+    c(
+      "last_known",
+      "percent",
+      "linear",
+      "custom"
     )
-  )[display_scenarios] |>
-    purrr::map_df(
-      ~ model_scenario_data(
-        scenario_data = r$scenario_data[[.x]],
-        ics_code = r$ics_cd,
-        model = model_outputs
-      ),
-      .id = "value_type"
-    ) |>
-    anti_join(
-      observed_data,
-      by = join_by(
+  )
+
+  # if custom scenario, check if name is unique
+  if (scenario_name == "custom" &
+      any(paste0("Prediction - ", prediction_custom_scenario) %in%
+            r$predictions$value_type)) {
+    showModal(
+      modalDialog(
+        title = "Duplicate scenario",
+        "A scenario with this name already exists, please rename the scenario",
+        easyClose = TRUE,
+        footer = NULL
+      )
+    )
+  } else {
+    # select years we have observed data for the performance metric
+    observed_data <- r$ics_data |>
+      distinct(
         !!sym("year"),
         !!sym("metric")
       )
-    )
 
-  # # create predictions for the observed years
-  observed_years_predictions <- update_observed_time_period_predictions(
-    model_outputs = model_outputs,
-    r = r
-  ) |>
-    dplyr::cross_join(
-      distinct(
-        future_years_predictions,
-        !!sym("value_type")
+    # refine the models to the ones just for display
+    model_outputs <- model_outputs[performance_metrics]
+
+    # create predictions for future years for selected scenario
+    # create scenario and name
+    if (scenario_name == "last_known") {
+      named_scenario <- c("Prediction - last known value" = scenario_name)
+    } else if (scenario_name == "percent") {
+      named_scenario <- c("Prediction - percent change" = scenario_name)
+    } else if (scenario_name == "linear") {
+      named_scenario <- c("Prediction - linear extrapolation" = scenario_name)
+    } else if (scenario_name == "custom") {
+      named_scenario <- setNames(
+        scenario_name,
+        nm = paste0("Prediction - ", prediction_custom_scenario)
       )
-    )
+    }
 
-  r$predictions <- bind_rows(
-    observed_years_predictions,
-    future_years_predictions
-  )
+    future_years_predictions <- named_scenario |>
+      purrr::map_df(
+        ~ model_scenario_data(
+          scenario_data = r$scenario_data[[.x]],
+          ics_code = r$ics_cd,
+          model = model_outputs
+        ),
+        .id = "value_type"
+      ) |>
+      anti_join(
+        observed_data,
+        by = join_by(
+          !!sym("year"),
+          !!sym("metric")
+        )
+      )
+
+    # # create predictions for the observed years
+    observed_years_predictions <- update_observed_time_period_predictions(
+      model_outputs = model_outputs,
+      r = r
+    ) |>
+      dplyr::cross_join(
+        distinct(
+          future_years_predictions,
+          !!sym("value_type")
+        )
+      )
+
+    if (is.null(r$predictions)) {
+      r$predictions <- bind_rows(
+        observed_years_predictions,
+        future_years_predictions
+      )
+    } else {
+      # retain predictions if they have been made already under a different
+      # scenario
+
+      if (scenario_name == "custom") {
+        r$predictions <- bind_rows(
+          r$predictions,
+          observed_years_predictions,
+          future_years_predictions
+        )
+      } else {
+        if (any(names(named_scenario) %in% r$predictions$value_type)) {
+          r$predictions <- r$predictions |>
+            filter(
+              !!sym("value_type") != names(named_scenario)
+            )
+        }
+        r$predictions <- r$predictions |>
+          bind_rows(
+            observed_years_predictions,
+            future_years_predictions
+          )
+      }
+    }
+
+    if (!is.null(r$predictions)) {
+      r$performance_plot <- plot_performance(
+        historic_data = bind_rows(
+          r$ics_data,
+          r$predictions
+        ),
+        performance_metric = performance_metrics
+      )
+    } else {
+      r$performance_plot <- plot_hold_message()
+    }
+  }
 }
 
 update_observed_time_period_predictions <- function(model_outputs, r) {

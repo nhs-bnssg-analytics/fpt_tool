@@ -32,6 +32,11 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
     tidyr::pivot_wider(
       names_from = !!sym("metric"),
       values_from = !!sym("value")
+    ) |>
+    select(
+      all_of(
+        c("year", "org", names(model))
+      )
     )
 
   # transform scenario data from wide format (where columns are year) to wider
@@ -376,7 +381,7 @@ make_predictions <- function(model, input_data) {
       mutate(
         across(
           !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
-          function(x) x - lag(x, default = 0)
+          function(x) ifelse(is.na(lag(x)), 0, x - lag(x))
         ),
         .by = c(
           org
