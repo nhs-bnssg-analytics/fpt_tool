@@ -27,7 +27,7 @@ snapshot_ics_data <- function(broad_age_bands = TRUE) {
     )
 
   ics_timeseries <- list.files(
-    "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/",
+    "C:/Users/Sebastian.Fox/R/Play/d_and_c/data/",
     full.names = TRUE
   ) |>
     (\(x) x[!grepl("configuration-table", x)])() |>
@@ -77,7 +77,7 @@ snapshot_ics_data <- function(broad_age_bands = TRUE) {
 #' @noRd
 snapshot_metadata <- function() {
   meta <- read.csv(
-    "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data/configuration-table.csv",
+    "C:/Users/Sebastian.Fox/R/Play/d_and_c/data/configuration-table.csv",
     encoding = "latin1") |>
     dplyr::filter(
       !!sym("status") == "include" |
@@ -96,7 +96,7 @@ snapshot_metadata <- function() {
 
 
 snapshot_model_accuracy <- function() {
-  model_accuracy <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/tests/model_testing/model_summary_information.rds") |>
+  model_accuracy <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/tests/model_testing/model_summary_information.rds") |>
     filter(
       `Test set value` == min(`Test set value`),
       .by = `Target variable`

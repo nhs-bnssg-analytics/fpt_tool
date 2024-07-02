@@ -100,7 +100,7 @@ ics_name_lkp <- function(ics_code) {
 trust_ics_proportions <- function() {
   #lsoa code to icb code
   lsoa_to_icb <- readxl::read_excel(
-    path = "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data-raw/Lookups/lsoa_icb.xlsx",
+    path = "C:/Users/Sebastian.Fox/R/Play/d_and_c/data-raw/Lookups/lsoa_icb.xlsx",
     sheet = "LSOA11_LOC22_ICB22_LAD22"
   ) |>
     distinct(
@@ -110,7 +110,7 @@ trust_ics_proportions <- function() {
 
   # now create MSOA to ICB, with a count of ICBs in an MSOA (eg, if an MSOA goes
   # over an ICB boundary, then it will allow us to divide the final metric by 2)
-  msoa_to_icb <- read.csv("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data-raw/Lookups/lsoa_to_msoa.csv") |>
+  msoa_to_icb <- read.csv("C:/Users/Sebastian.Fox/R/Play/d_and_c/data-raw/Lookups/lsoa_to_msoa.csv") |>
     distinct(
       LSOA11CD, MSOA11CD
     ) |>
@@ -127,7 +127,7 @@ trust_ics_proportions <- function() {
     )
 
   latest_proportions <- readxl::read_excel(
-    "C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/data-raw/Catchment populations/catchment-populations.xlsx",
+    "C:/Users/Sebastian.Fox/R/Play/d_and_c/data-raw/Catchment populations/catchment-populations.xlsx",
     sheet = "All Admissions"
   ) |>
     filter(
@@ -163,8 +163,8 @@ load_model_object <- function(type = NULL) {
 
   performance_metrics <- performance_metrics()
 
-  # model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
-  model <- readRDS("C:/Users/Sebastian.Fox/Documents/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi.rds")[performance_metrics]
+  # model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
+  model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi.rds")[performance_metrics]
 
   if (!is.null(type)) {
     type <- match.arg(

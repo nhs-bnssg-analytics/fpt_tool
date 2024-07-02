@@ -18,6 +18,7 @@ usethis::use_data(
   trust_ics_props,
   ics_timeseries,
   metadata,
+  model_accuracy,
   internal = TRUE,
   overwrite = TRUE
 )
