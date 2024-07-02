@@ -6,6 +6,8 @@
 #' @importFrom dplyr filter pull
 #' @importFrom tidyr separate_wider_delim replace_na
 #' @importFrom stringr str_to_sentence
+#' @param historic_data tibble with columns org, metric, year, value_type (which
+#'   is the scenario name) and value
 #' @noRd
 plot_performance <- function(historic_data, performance_metric) {
   ics_name <- historic_data |>
@@ -45,11 +47,6 @@ plot_performance <- function(historic_data, performance_metric) {
     levels = c(known_scenarios, final_scenario)
   )
 
-  scenario_colours <- setNames(
-    c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442"),
-    nm = known_scenarios
-  )
-
   plot <- plot |>
     ggplot(
       aes(
@@ -70,9 +67,8 @@ plot_performance <- function(historic_data, performance_metric) {
         colour = !!sym("scenario")
       )
     ) +
-    scale_colour_manual(
+    scale_colour_viridis_d(
       name = "Scenario",
-      values = scenario_colours,
       breaks = known_scenarios
     ) +
     labs(
