@@ -1,12 +1,12 @@
 ---
-title: "Template Title"
-author: "Your Name"
-date: "The Date"
+title: "`r paste('Modelling the impact of demand and capacity on NHS performance in', params$ics_name)`"
+date: "`r paste('Created on', format(Sys.Date(), '%d %B %Y'))`"
 output: word_document
 params:
   performance_plot: NULL
   prediction_data: NULL
   scenario_data: NULL
+  ics_name: NULL
 ---
 
 
@@ -55,46 +55,64 @@ The following table contain the values for the above charts:
 
 ```{r}
 #| label: prediction-data
-#| 
+#| results: 'asis'
+#| ft.align: 'left'
+
 
 set_flextable_defaults(
   font.size = 8,
   background.color = "#EFEFEF"
 )
 
-params$prediction_data |> 
-  dplyr::select(
-    Metric = "metric",
-    Year = "year", 
-    "value",
-    "value_type"
+prediction_table_function <- function(prediction_data) {
+  # browser()
+  caption_title <- names(prediction_data[1])
+  prediction_data <- prediction_data[[1]]
+  tbl <- prediction_data |> 
+    dplyr::select(
+      Year = "year", 
+      "value",
+      "value_type"
+    ) |> 
+    tidyr::pivot_wider(
+      names_from = value_type,
+      values_from = value
+    ) |> 
+    flextable::flextable() |>  
+    
+    flextable::set_table_properties(layout = "autofit") |> 
+    flextable::set_caption(
+      caption = flextable::as_paragraph(
+        "\nTable showing the effect of different demand and capacity scenarios on the ",
+        flextable::as_b(caption_title),
+        "."
+      )
+    ) |> 
+    flextable::colformat_int(
+      j = "Year",
+      big.mark = ""
+    ) |> 
+    flextable::colformat_double(
+      j = prediction_data |> 
+        dplyr::pull(!!rlang::sym("value_type")) |> 
+        unique(),
+      digits = 1
+    ) 
+   
+  return(tbl)
+}
+
+tbls <- split(
+  params$prediction_data,
+  params$prediction_data$metric
+) |> 
+  purrr::lmap(
+    prediction_table_function
   ) |> 
-  tidyr::pivot_wider(
-    names_from = value_type,
-    values_from = value
-  ) |> 
-  flextable::flextable() |> 
-  flextable::set_table_properties(layout = "autofit") |> 
-  flextable::set_caption(caption = "Table showing the effect of different demand and capacity scenarios on modelled NHS peformance.") |> 
-  flextable::colformat_int(
-    j = "Year",
-    big.mark = ""
-  ) |> 
-  flextable::colformat_double(
-    j = params$prediction_data |> 
-      dplyr::pull(!!rlang::sym("value_type")) |> 
-      unique(),
-    digits = 1
+  purrr::walk(
+    flextable::flextable_to_rmd
   )
-# as_hux() |>
-#   set_width(1) |> 
-#   set_col_width(
-#     0.5
-#   )
-  # huxtable::quick_docx(
-  #   file = "huxtable-output.docx"
-  # ) |> 
-  # huxtable::as_flextable()
+
 ```
 
 ## Limitations

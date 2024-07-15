@@ -161,17 +161,12 @@ trust_ics_proportions <- function() {
 #' @noRd
 load_model_object <- function(type = NULL) {
 
-  performance_metrics <- performance_metrics()
-
-  # model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
-  model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi.rds")[performance_metrics]
-
   if (!is.null(type)) {
     type <- match.arg(
       type,
       c("wf", "perm_imp")
     )
-
+# model is an internal data object
     model <- model |>
       lapply(
         \(x) x[[type]]

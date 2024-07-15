@@ -1,8 +1,5 @@
 # data import functions for internal functions ----------------------------
 
-
-
-
 #' historic data for an ics imported from the d_and_c project and stored in the
 #' current project
 #'
@@ -111,7 +108,14 @@ snapshot_model_accuracy <- function() {
 
 }
 
+snapshot_model <- function() {
+  performance_metrics <- performance_metrics()
 
+  # model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
+  model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi.rds")[performance_metrics]
+
+  return(model)
+}
 
 # check custom data inputs ------------------------------------------------
 

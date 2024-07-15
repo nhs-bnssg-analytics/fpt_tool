@@ -13,12 +13,16 @@ metadata <- snapshot_metadata()
 ## model accuracy
 model_accuracy <- snapshot_model_accuracy()
 
+## import model
+model <- snapshot_model()
+
 usethis::use_data(
   ics_names,
   trust_ics_props,
   ics_timeseries,
   metadata,
   model_accuracy,
+  model,
   internal = TRUE,
   overwrite = TRUE
 )

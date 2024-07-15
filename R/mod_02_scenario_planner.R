@@ -818,7 +818,8 @@ mod_02_scenario_planner_server <- function(id, r){
         params <- list(
           performance_plot = r$performance_plot,
           prediction_data = r$predictions,
-          scenario_data = r$scenario_data
+          scenario_data = r$scenario_data,
+          ics_name = input$ics_selection
         )
         rmarkdown::render(
           tempReport,
