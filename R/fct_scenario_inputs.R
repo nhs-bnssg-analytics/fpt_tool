@@ -552,10 +552,10 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
 
   table_options <- match.arg(
     table_options,
-    c("all", "important", "top_n")
+    c("all", "top_n")
   )
 
-  if (table_options %in% c("important", "top_n")) {
+  if (table_options %in% c("top_n")) {
     important_vars <- important_variables(
       model_permutation_importance = model_permutation_importance,
       performance_metrics = performance_metrics
@@ -573,19 +573,14 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
       table_type = "stored"
     )
 
-    if (table_options == "important") {
-      r$scenario_data$custom_display <- all_important_variables
-      r$scenario_data$custom_stored <- all_remaining_variables
-    } else if (table_options == "top_n") {
-      n_value <- 15
-      r$scenario_data$custom_display <- all_important_variables |>
-        head(n_value)
+    n_value <- 15
+    r$scenario_data$custom_display <- all_important_variables |>
+      head(n_value)
 
-      r$scenario_data$custom_stored <- all_important_variables |>
-        tail(-n_value) |>
-        bind_rows(all_remaining_variables)
+    r$scenario_data$custom_stored <- all_important_variables |>
+      tail(-n_value) |>
+      bind_rows(all_remaining_variables)
 
-    }
   } else if (table_options ==  "all") {
     r$scenario_data$custom_display <- input_table
     r$scenario_data$custom_stored <- input_table |>

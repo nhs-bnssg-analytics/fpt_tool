@@ -110,11 +110,94 @@ mod_02_scenario_planner_ui <- function(id){
       class = "scenario-card-header"
     ),
     card_body(
-      textInput(
-        inputId = ns("custom_name"),
-        label = "Enter scenario name",
-        value = "Custom scenario"
+      layout_column_wrap(
+        width = NULL,
+        style = "grid-template-columns: 300px 50px 50px;",
+        textInput(
+          inputId = ns("custom_name"),
+          label = NULL,
+          placeholder = "Enter scenario name"
+        ),
+        span(
+          input_task_button(
+            id = ns("btn_add_scenario_prediction"),
+            label = NULL,
+            icon = icon("plus", style = "color: white;"),
+            style = "background-color: green; border: none; padding: 5px 0 5px 0; width: 40px",
+            label_busy = "Predicting...",
+            type = "secondary"
+          ),
+          class = "tooltiptext",
+          title = "Make predictions and add to chart"
+        ),
+        span(
+          input_task_button(
+            id = ns("btn_remove_scenario_prediction"),
+            label = NULL,
+            icon = icon("minus", style = "color: white;"),
+            style = "background-color: red; border: none; padding: 5px 0 5px 0; width: 40px",
+            label_busy = "Removing...",
+            type = "secondary"
+          ),
+          class = "tooltiptext",
+          title = "Remove scenario from chart"
+        )
+
+          # shinyBS::bsTooltip(
+          #   id = ns("btn_add_scenario_prediction"),
+          #   title = "Make predictions and add to chart",
+          #   placement = "top",
+          #   trigger = "hover",
+          #   options = list(container = "body")
+          # ),
+          # shinyBS::tipify(
+          #   ,
+          #   "Testing"
+          # )
+          # ,
+          # shinyBS::bsTooltip(
+          #   id = "btn_remove_scenario_prediction",
+          #   title = "Remove scenarios from chart",
+          #   placement = "top",
+          #   trigger = "hover",
+          #   options = list(container = "body")
+          # )
+        # )
+
+
+
+
+          # shinyBS::bsTooltip(
+          #   id = ns("btn_add_scenario_prediction"),
+          #   title = "Make predictions and add to chart",
+          #   placement = "top",
+          #   trigger = "hover"
+          # )#,
+          # shinyBS::bsTooltip(
+          #   id = ns("btn_remove_scenario_prediction"),
+          #   title = "Remove scenarios from chart",
+          #   placement = "top",
+          #   trigger = "hover"
+          # )
+        # )#,
+        # actionButton(
+        #   inputId = ns("btn_add_scenario_prediction"),
+        #   label = NULL,
+        #   icon = icon("plus", style = "color: green;")
+        # ),
+        # actionButton(
+        #   inputId = ns("btn_remove_scenario_prediction"),
+        #   label = NULL,
+        #   icon = icon("minus", style = "color: red;"))
       )
+      # tooltip(
+      #   span(
+      #     "This text does trigger",
+      #     bs_icon("info-circle")
+      #   ),
+      #   "Tooltip message",
+      #   placement = "bottom"
+      # )
     ),
     card_body(
       p("Select an option to pre-populate your custom scenario data below.")
@@ -146,7 +229,6 @@ mod_02_scenario_planner_ui <- function(id){
       width = "100%",
       choices = c(
         "All" = "all",
-        "Most important" = "important",
         "Top 15 important" = "top_n"
       ),
       selected = "top_n"
@@ -164,21 +246,22 @@ mod_02_scenario_planner_ui <- function(id){
                        .csv"),
       width = "300px"
     ),
-    layout_column_wrap(
-      width = 0.25,
-      bslib::input_task_button(
-        id = ns("btn_add_scenario_prediction"),
-        label = "Make predictions and add to chart",
-        label_busy = "Predicting...",
-        type = "secondary"
-      ),
-      bslib::input_task_button(
-        id = ns("btn_remove_scenario_prediction"),
-        label = "Remove scenarios from chart",
-        label_busy = "Removing...",
-        type = "secondary"
-      )
-    ),
+    # layout_column_wrap(
+    #   width = 0.25,
+    #   bslib::input_task_button(
+    #     id = ns("btn_add_scenario_prediction"),
+    #     icon = icon("plus", style = "color: green;"),
+    #     label = "Make predictions and add to chart",
+    #     label_busy = "Predicting...",
+    #     type = "secondary"
+    #   ),
+    #   bslib::input_task_button(
+    #     id = ns("btn_remove_scenario_prediction"),
+    #     label = "Remove scenarios from chart",
+    #     label_busy = "Removing...",
+    #     type = "secondary"
+    #   )
+    # ),
     card_body(
       min_height = "50vh",
       max_height = "80vh",
@@ -243,6 +326,10 @@ mod_02_scenario_planner_ui <- function(id){
     bslib::navset_card_tab(
       full_screen = TRUE,
       bslib::nav_panel(
+        title = "Custom scenario",
+        custom_template_card
+      ),
+      bslib::nav_panel(
         title = "Template scenarios",
         layout_column_wrap(
           width = "400px",
@@ -251,10 +338,6 @@ mod_02_scenario_planner_ui <- function(id){
           percent_card,
           linear_card
         )
-      ),
-      bslib::nav_panel(
-        title = "Custom scenario",
-        custom_template_card
       )
     )
 
