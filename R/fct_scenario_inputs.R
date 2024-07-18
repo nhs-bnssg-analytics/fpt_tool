@@ -512,89 +512,25 @@ important_variables <- function(model_permutation_importance,
   return(important_metrics)
 }
 
-#' Create the scenario input table for either the display in the app, or what is
-#' stored in the back-end 'database'
-#'
-#' @param custom_table full table that can be divided into a display version and
-#'   a stored version. Needs to contain a field called 'metric'
-#' @param important_vars character; vector of metrics that are used to filter
-#'   and order the metric field of the custom_table
-#' @param table_type character(1); either 'display' or 'stored'
-#'
-#' @return tibble with the same fields as the input tibble, but a reduced number
-#'   of rows based on the important_vars argument
-#'
-#' @importFrom dplyr filter mutate arrange
-#' @importFrom rlang sym
-#' @noRd
-create_scenario_table <- function(custom_table, important_vars, table_type) {
-  table_type <- match.arg(
-    table_type,
-    c("display", "stored")
-  )
-
-  if (table_type == "display") {
-    output_table <- custom_table |>
-      filter(!!sym("metric") %in% important_vars) |>
-      mutate(
-        metric = factor(
-          !!sym("metric"),
-          levels = important_vars
-        )
-      ) |>
-      arrange(!!sym("metric"))
-  } else if (table_type == "stored") {
-    output_table <- custom_table|>
-      filter(!(!!sym("metric") %in% important_vars))
-  }
-  return(output_table)
-}
-
 #' @importFrom utils head tail
-update_custom_tables <- function(input_table, model_permutation_importance, performance_metrics, table_options, r) {
+update_custom_tables <- function(input_table, model_permutation_importance, performance_metrics, r) {
 
-  table_options <- match.arg(
-    table_options,
-    c("all", "top_n")
+  # character vector of the most important variables based on the selected
+  # performance metrics
+  important_vars <- important_variables(
+    model_permutation_importance = model_permutation_importance,
+    performance_metrics = performance_metrics
   )
 
-  if (table_options %in% c("top_n")) {
-    important_vars <- important_variables(
-      model_permutation_importance = model_permutation_importance,
-      performance_metrics = performance_metrics
-    )
-
-    all_important_variables <- create_scenario_table(
-      custom_table <- input_table,
-      important_vars = important_vars,
-      table_type = "display"
-    )
-
-    all_remaining_variables <- create_scenario_table(
-      custom_table <- input_table,
-      important_vars = important_vars,
-      table_type = "stored"
-    )
-
-    n_value <- 15
-    r$scenario_data$custom_display <- all_important_variables |>
-      utils::head(n_value)
-
-    r$scenario_data$custom_stored <- all_important_variables |>
-      utils::tail(-n_value) |>
-      bind_rows(all_remaining_variables)
-
-  } else if (table_options ==  "all") {
-    r$scenario_data$custom_display <- input_table
-    r$scenario_data$custom_stored <- input_table |>
-      head(0)
-
-  }
-
-  r$scenario_data$custom <- bind_rows(
-    r$scenario_data$custom_display,
-    r$scenario_data$custom_stored
-  )
+  r$scenario_data$custom <- input_table |>
+    filter(!!sym("metric") %in% important_vars) |>
+    mutate(
+      metric = factor(
+        !!sym("metric"),
+        levels = important_vars
+      )
+    ) |>
+    arrange(!!sym("metric"))
 }
 
 

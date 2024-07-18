@@ -186,54 +186,6 @@ test_that("important_variables() works as expected", {
 
 })
 
-test_that("create_scenario_table works as expected", {
-  tbl <- tibble(
-    metric = letters[1:13]
-  )
-
-  imp_vars <- c("a", "c", "b")
-
-  expect_equal(
-    create_scenario_table(
-      custom_table = tbl,
-      important_vars = imp_vars,
-      table_type = "display"
-    ) |>
-      pull(metric) |>
-      as.character(),
-    imp_vars,
-    info = "the table produced by create_scenario_table is ordered in the same way as the input important variables when table_type is 'display'"
-  )
-
-  expect_length(
-    create_scenario_table(
-      custom_table = tbl,
-      important_vars = imp_vars,
-      table_type = "display"
-    ) |>
-      pull(metric) |>
-      as.character() |>
-      setdiff(imp_vars),
-    0
-  )
-
-  expect_length(
-    create_scenario_table(
-      custom_table = tbl,
-      important_vars = imp_vars,
-      table_type = "stored"
-    ) |>
-      pull(metric) |>
-      as.character() |>
-      setdiff(imp_vars),
-    # the length of the stored table is the same as the original with the
-    # important variable removed
-    nrow(tbl) - length(imp_vars)
-  )
-
-})
-
-
 test_that("the scenario data checker function ensures all values that are not real have been changed", {
   dummy_metrics <- c(
     "proportion of a",

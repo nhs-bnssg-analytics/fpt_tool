@@ -187,16 +187,6 @@ mod_02_scenario_planner_ui <- function(id){
           )
         )
       ),
-      radioButtons(
-        inputId = ns("custom_display"),
-        label = "Which demand and capacity variables do you want to display below?",
-        width = "100%",
-        choices = c(
-          "All" = "all",
-          "Top 15 important" = "top_n"
-        ),
-        selected = "top_n"
-      ),
       card_body(
         min_height = "50vh",
         max_height = "80vh",
@@ -383,16 +373,8 @@ mod_02_scenario_planner_server <- function(id, r){
         )
         r$scenario_data$last_known <- last_known
 
-        update_custom_tables(
-          input_table = last_known,
-          model_permutation_importance = model_outputs |>
-            lapply(
-              function(x) x[["perm_imp"]]
-            ),
-          performance_metrics = input$performance_metric_selection,
-          table_options = input$custom_display,
-          r = r
-        )
+        r$scenario_data$custom <- last_known
+
         # print("last_known_year")
       })
 
@@ -407,6 +389,8 @@ mod_02_scenario_planner_server <- function(id, r){
           percent = input$percent_change_val
         )
 
+        # r$scenario_data$custom <- percent_change
+
         update_custom_tables(
           input_table = percent_change,
           model_permutation_importance = model_outputs |>
@@ -414,7 +398,6 @@ mod_02_scenario_planner_server <- function(id, r){
               function(x) x[["perm_imp"]]
             ),
           performance_metrics = input$performance_metric_selection,
-          table_options = input$custom_display,
           r = r
         )
         # print("percent_change")
@@ -437,7 +420,6 @@ mod_02_scenario_planner_server <- function(id, r){
               function(x) x[["perm_imp"]]
             ),
           performance_metrics = input$performance_metric_selection,
-          table_options = input$custom_display,
           r = r
         )
         # print("linear")
@@ -453,24 +435,23 @@ mod_02_scenario_planner_server <- function(id, r){
             function(x) x[["perm_imp"]]
           ),
         performance_metrics = input$performance_metric_selection,
-        table_options = input$custom_display,
         r = r
       )
 
       numeric_cols <- setdiff(
-        names(r$scenario_data$custom_display),
+        names(r$scenario_data$custom),
         c("metric", "domain")
       )
 
       DT::datatable(
-        r$scenario_data$custom_display,
+        r$scenario_data$custom,
         rownames = FALSE,
         editable = list(
           target = "cell",
           disable = list(
             columns = seq_len(
               match(first_year(),
-                    names(r$scenario_data$custom_display)
+                    names(r$scenario_data$custom)
                   ) - 2
               )
             ), # disable editing metric and domain fields and previous year values
@@ -482,14 +463,6 @@ mod_02_scenario_planner_server <- function(id, r){
           "Metric" = "metric",
           "Domain" = "domain"
         ),
-        # options = list(paging = TRUE,
-        #                scrollX=TRUE,
-        #                searching = TRUE,
-        #                ordering = TRUE,
-        #                dom = 'Bfrtip',
-        #                buttons = c('copy', 'csv', 'excel', 'pdf'),
-        #                pageLength=5,
-        #                lengthMenu=c(3,5,10) )
         options = list(
           paging = TRUE,
           pageLength = 10,
@@ -498,22 +471,26 @@ mod_02_scenario_planner_server <- function(id, r){
           ordering = TRUE,
           autoWidth = TRUE,
           dom = 'Blfrtip',
-          buttons = c('copy', 'csv')
-        #   # columnDefs = list(
-        #   #   list(
-        #   #     targets = 0, # 1st column (0-indexed)
-        #   #     createdCell = DT::JS(
-        #   #       "function(td, cellData, rowData, row, col) {",
-        #   #       "$(td).attr('title', cellData);",
-        #   #       "}"
-        #   #       # "function(td, cellData, rowData, row, col) {",
-        #   #       # # "let words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];",
-        #   #       # # "let number = parseInt(cellData);",
-        #   #       # "$(td).attr('title', cellData);",
-        #   #       # "}"
-        #   #     )
-        #   #   )
-        #   # )
+          buttons = list(
+            list(extend = 'copy',
+                 title = NULL # prevents the title of the app being included when copying the data
+                 ),
+            'csv')
+          # columnDefs = list(
+          #   list(
+          #     targets = 0, # 1st column (0-indexed)
+          #     createdCell = DT::JS(
+          #       "function(td, cellData, rowData, row, col) {",
+          #       "$(td).attr('title', cellData);",
+          #       "}"
+          #       # "function(td, cellData, rowData, row, col) {",
+          #       # # "let words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];",
+          #       # # "let number = parseInt(cellData);",
+          #       # "$(td).attr('title', cellData);",
+          #       # "}"
+          #     )
+          #   )
+          # )
         )
       ) |>
         DT::formatRound(
@@ -530,19 +507,12 @@ mod_02_scenario_planner_server <- function(id, r){
         mutate(col = col + 1) # this is because there is an offset as rownames = FALSE
 
       # str(edited_cell_info)
-      r$scenario_data$custom_display <<- DT::editData(
-        data = r$scenario_data$custom_display,
+      r$scenario_data$custom <<- DT::editData(
+        data = r$scenario_data$custom,
         info = edited_cell_info,
         proxy = ns("scenario_data_custom"),
         resetPaging = TRUE # testing this because currently
       )
-
-      custom_table <- bind_rows(
-        r$scenario_data$custom_display,
-        r$scenario_data$custom_stored
-      )
-
-      r$scenario_data$custom <<- custom_table
 
     })
 
@@ -602,19 +572,6 @@ mod_02_scenario_planner_server <- function(id, r){
 
 
 # Exporting and importing data to the custom scenario table ---------------
-
-
-    # Download a csv of the custom scenario data table
-    # output$download_custom_scenario_inputs <- downloadHandler(
-    #   filename = "custom_input_data.csv",
-    #   content = function(file) {
-    #     utils::write.csv(
-    #       r$scenario_data$custom,
-    #       file,
-    #       row.names = FALSE
-    #     )
-    #   }
-    # )
 
     # loads custom file into the database to override the r$scenario_data$custom dataset
     observeEvent(
@@ -743,7 +700,6 @@ mod_02_scenario_planner_server <- function(id, r){
           )
         } else if (input$display_percent == FALSE) {
           if (!is.null(r$predictions)) {
-            # browser()
             r$predictions <- r$predictions |>
               filter(
                 !!sym("value_type") != "Prediction - percent change"
@@ -871,7 +827,6 @@ mod_02_scenario_planner_server <- function(id, r){
       }
     )
   })
-
 
 }
 
