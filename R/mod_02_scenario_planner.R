@@ -465,7 +465,7 @@ mod_02_scenario_planner_server <- function(id, r){
         ),
         options = list(
           paging = TRUE,
-          pageLength = 10,
+          pageLength = isolate(input$scenario_data_custom_state$length),
           lengthMenu = c(5, 10, 15, 25, 100),
           searching = TRUE,
           ordering = TRUE,
@@ -475,7 +475,9 @@ mod_02_scenario_planner_server <- function(id, r){
             list(extend = 'copy',
                  title = NULL # prevents the title of the app being included when copying the data
                  ),
-            'csv')
+            'csv'),
+          stateSave = TRUE,
+          order = isolate(input$scenario_data_custom_state$order)
           # columnDefs = list(
           #   list(
           #     targets = 0, # 1st column (0-indexed)
@@ -499,6 +501,8 @@ mod_02_scenario_planner_server <- function(id, r){
     },
     server = FALSE)
 
+    prxy <- DT::dataTableProxy("scenario_data_custom")
+
     # store editted scenario_data
     # https://rstudio.github.io/DT/shiny.html
     # https://yihui.shinyapps.io/DT-edit/
@@ -510,10 +514,21 @@ mod_02_scenario_planner_server <- function(id, r){
       r$scenario_data$custom <<- DT::editData(
         data = r$scenario_data$custom,
         info = edited_cell_info,
-        proxy = ns("scenario_data_custom"),
-        resetPaging = TRUE # testing this because currently
+        proxy = ns("scenario_data_custom")
       )
 
+      DT::updateSearch(
+        prxy,
+        keywords = list(
+          global = input$scenario_data_custom_state$search$search,
+          columns = NULL)
+      )
+
+      DT::selectPage(
+        prxy,
+        page = input$scenario_data_custom_state$start /
+          input$scenario_data_custom_state$length + 1
+      )
     })
 
     # model the current scenario and add it to the charts
