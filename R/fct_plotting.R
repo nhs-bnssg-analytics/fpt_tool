@@ -98,44 +98,44 @@ plot_performance <- function(historic_data, performance_metric) {
 #' @import ggplot2
 #' @importFrom stringr str_wrap
 #' @importFrom dplyr filter mutate summarise case_when
-#' @importFrom scales percent
 #' @importFrom ggrepel geom_text_repel
+#' @importFrom rlang sym
 #' @noRd
 plot_trust_icb_proportions <- function(ics_code) {
 
   df <- trust_ics_props |>
-    dplyr::filter(ICB22CDH == ics_code) |>
+    dplyr::filter(!!sym("ICB22CDH") == ics_code) |>
     mutate(
       TrustName = case_when(
-        proportion > 0.05 ~ TrustName,
+        !!sym("proportion") > 0.05 ~ !!sym("TrustName"),
         .default = "Other trusts"
       )
     ) |>
     summarise(
-      proportion = sum(proportion),
-      .by = c(TrustName, ICB22CDH)
+      proportion = sum(!!sym("proportion")),
+      .by = c(!!sym("TrustName"), !!sym("ICB22CDH"))
     ) |>
     arrange(
-      proportion
+      !!sym("proportion")
     ) |>
     mutate(
-      TrustName = factor(TrustName, levels = TrustName)
+      TrustName = factor(!!sym("TrustName"), levels = !!sym("TrustName"))
     )
 
 
   df2 <- df |>
   mutate(
-    csum = rev(cumsum(rev(proportion))),
-    pos = proportion / 2 + dplyr::lead(csum, 1),
-    pos = dplyr::if_else(is.na(pos), proportion / 2, pos)
+    csum = rev(cumsum(rev(!!sym("proportion")))),
+    pos = !!sym("proportion") / 2 + dplyr::lead(!!sym("csum"), 1),
+    pos = dplyr::if_else(is.na(!!sym("pos")), !!sym("proportion") / 2, !!sym("pos"))
   )
 
   p <- df |>
     ggplot(
       aes(
         x = "",
-        y = proportion,
-        fill = TrustName
+        y = !!sym("proportion"),
+        fill = !!sym("TrustName")
       )
     ) +
     geom_col(
@@ -152,13 +152,14 @@ plot_trust_icb_proportions <- function(ics_code) {
     geom_text_repel(
       data = df2,
       aes(
-        y = pos,
+        y = !!sym("pos"),
         label = stringr::str_wrap(
           paste0(
-            TrustName,
+            !!sym("TrustName"),
             " (",
-            scales::percent(proportion, accuracy = 1),
-            ")"
+            # scales::percent(!!sym("proportion"), accuracy = 1),
+            formatC(100 * !!sym("proportion"), digits = 1, format = "f"),
+            "%)"
             ), 25)
       ),
       nudge_x = 1,
@@ -176,7 +177,7 @@ plot_trust_icb_proportions <- function(ics_code) {
   return(p)
 }
 
-
+#' @importFrom rlang sym
 plot_hold_message <- function() {
   p <- tibble::tibble(
     x = 1,
@@ -188,13 +189,13 @@ plot_hold_message <- function() {
   ) |>
     ggplot(
       aes(
-        x = x,
-        y = y
+        x = !!sym("x"),
+        y = !!sym("y")
       )
     ) +
     geom_text(
       aes(
-        label = text
+        label = !!sym("text")
       )
     ) +
     theme(

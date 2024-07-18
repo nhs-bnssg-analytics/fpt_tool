@@ -86,6 +86,7 @@ mod_03_model_info_ui <- function(id){
 #' @import ggplot2
 #' @importFrom tidytext scale_y_reordered reorder_within
 #' @importFrom stringr str_wrap
+#' @importFrom rlang sym
 #' @noRd
 mod_03_model_info_server <- function(id){
   moduleServer(id, function(input, output, session){
@@ -96,8 +97,8 @@ mod_03_model_info_server <- function(id){
       model_accuracy |>
         ggplot(
           aes(
-            x = mape,
-            y = stringr::str_wrap(target_variable, 40)
+            x = !!sym("mape"),
+            y = stringr::str_wrap(!!sym("target_variable"), 40)
           )
         ) +
         geom_col(
@@ -117,19 +118,19 @@ mod_03_model_info_server <- function(id){
           names_to = "target_variable"
         ) |>
         mutate(
-          Variable = stringr::str_wrap(Variable, 40),
-          target_variable = stringr::str_wrap(target_variable, 30)
+          Variable = stringr::str_wrap(!!sym("Variable"), 40),
+          target_variable = stringr::str_wrap(!!sym("target_variable"), 30)
         ) |>
-        group_by(target_variable) |>
+        group_by(!!sym("target_variable")) |>
         dplyr::top_n(
           n = 5,
-          wt = Importance
+          wt = !!sym("Importance")
         ) |>
         ggplot(
           aes(
-            x = Importance,
+            x = !!sym("Importance"),
             y = tidytext::reorder_within(
-              Variable, Importance, target_variable
+              !!sym("Variable"), !!sym("Importance"), !!sym("target_variable")
             )
           )
         ) +
@@ -139,14 +140,14 @@ mod_03_model_info_server <- function(id){
         ) +
         geom_errorbarh(
           aes(
-            xmin = Importance - StDev,
-            xmax = Importance + StDev
+            xmin = !!sym("Importance") - !!sym("StDev"),
+            xmax = !!sym("Importance") + !!sym("StDev")
           ),
           height = 0.2
         ) +
         tidytext::scale_y_reordered() +
         facet_wrap(
-          facets = vars(target_variable),
+          facets = vars(!!sym("target_variable")),
           scales = "free_y",
           ncol = 2
         ) +

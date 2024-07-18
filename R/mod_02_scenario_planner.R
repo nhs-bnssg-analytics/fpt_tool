@@ -6,9 +6,11 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList downloadButton
+#' @importFrom shiny NS tagList checkboxInput numericInput downloadButton
+#'   textInput span fileInput radioButtons selectInput selectInput sliderInput
 #' @importFrom bslib navset_card_tab input_task_button card card_header
-#'   card_body layout_column_wrap layout_sidebar sidebar
+#'   card_body layout_column_wrap layout_sidebar sidebar bs_theme page_fluid
+#'   nav_panel
 #' @importFrom DT DTOutput
 mod_02_scenario_planner_ui <- function(id){
   ns <- NS(id)
@@ -112,7 +114,7 @@ mod_02_scenario_planner_ui <- function(id){
     card_body(
       layout_column_wrap(
         width = NULL,
-        style = "grid-template-columns: 300px 50px 50px;",
+        style = "grid-template-columns: 300px 100px 100px;",
         textInput(
           inputId = ns("custom_name"),
           label = NULL,
@@ -123,7 +125,7 @@ mod_02_scenario_planner_ui <- function(id){
             id = ns("btn_add_scenario_prediction"),
             label = NULL,
             icon = icon("plus", style = "color: white;"),
-            style = "background-color: green; border: none; padding: 5px 0 5px 0; width: 40px",
+            style = "background-color: green; border: none; padding: 5px 0 5px 0; width: 90px",
             label_busy = "Predicting...",
             type = "secondary"
           ),
@@ -135,137 +137,71 @@ mod_02_scenario_planner_ui <- function(id){
             id = ns("btn_remove_scenario_prediction"),
             label = NULL,
             icon = icon("minus", style = "color: white;"),
-            style = "background-color: red; border: none; padding: 5px 0 5px 0; width: 40px",
+            style = "background-color: red; border: none; padding: 5px 0 5px 0; width: 90px",
             label_busy = "Removing...",
             type = "secondary"
           ),
           class = "tooltiptext",
           title = "Remove scenario from chart"
         )
-
-          # shinyBS::bsTooltip(
-          #   id = ns("btn_add_scenario_prediction"),
-          #   title = "Make predictions and add to chart",
-          #   placement = "top",
-          #   trigger = "hover",
-          #   options = list(container = "body")
-          # ),
-          # shinyBS::tipify(
-          #   ,
-          #   "Testing"
-          # )
-          # ,
-          # shinyBS::bsTooltip(
-          #   id = "btn_remove_scenario_prediction",
-          #   title = "Remove scenarios from chart",
-          #   placement = "top",
-          #   trigger = "hover",
-          #   options = list(container = "body")
-          # )
-        # )
-
-
-
-
-          # shinyBS::bsTooltip(
-          #   id = ns("btn_add_scenario_prediction"),
-          #   title = "Make predictions and add to chart",
-          #   placement = "top",
-          #   trigger = "hover"
-          # )#,
-          # shinyBS::bsTooltip(
-          #   id = ns("btn_remove_scenario_prediction"),
-          #   title = "Remove scenarios from chart",
-          #   placement = "top",
-          #   trigger = "hover"
-          # )
-        # )#,
-        # actionButton(
-        #   inputId = ns("btn_add_scenario_prediction"),
-        #   label = NULL,
-        #   icon = icon("plus", style = "color: green;")
-        # ),
-        # actionButton(
-        #   inputId = ns("btn_remove_scenario_prediction"),
-        #   label = NULL,
-        #   icon = icon("minus", style = "color: red;"))
+      ),
+      card_body(
+        p("Select an option to pre-populate your custom scenario data below.")
+      ),
+      layout_column_wrap(
+        width = 0.2,
+        bslib::input_task_button(
+          id = ns("last_known_value_button"),
+          label = "Last observed value",
+          label_busy = "Updating custom scenario...",
+          type = "secondary"
+        ),
+        bslib::input_task_button(
+          id = ns("percent_change_button"),
+          label = "Percentage change",
+          label_busy = "Updating custom scenario...",
+          type = "secondary"
+        ),
+        bslib::input_task_button(
+          id = ns("linear_button"),
+          label = "Linear extrapolation",
+          label_busy = "Updating custom scenario...",
+          type = "secondary"
+        )
+      ),
+      card(
+        style = "width: 30%;",
+        card_header(
+          "Import csv",
+          class = "default-card-header"
+        ),
+        card_body(
+          fileInput(
+            ns("custom_scenario_file"),
+            label = "Import custom scenario CSV file:",
+            accept = c(
+              "text/csv",
+              "text/comma-separated-values",
+              ".csv"
+            )
+          )
+        )
+      ),
+      radioButtons(
+        inputId = ns("custom_display"),
+        label = "Which demand and capacity variables do you want to display below?",
+        width = "100%",
+        choices = c(
+          "All" = "all",
+          "Top 15 important" = "top_n"
+        ),
+        selected = "top_n"
+      ),
+      card_body(
+        min_height = "50vh",
+        max_height = "80vh",
+        DT::DTOutput(ns("scenario_data_custom"))
       )
-      # tooltip(
-      #   span(
-      #     "This text does trigger",
-      #     bs_icon("info-circle")
-      #   ),
-      #   "Tooltip message",
-      #   placement = "bottom"
-      # )
-    ),
-    card_body(
-      p("Select an option to pre-populate your custom scenario data below.")
-    ),
-    layout_column_wrap(
-      width = 0.2,
-      bslib::input_task_button(
-        id = ns("last_known_value_button"),
-        label = "Last observed value",
-        label_busy = "Updating custom scenario...",
-        type = "secondary"
-      ),
-      bslib::input_task_button(
-        id = ns("percent_change_button"),
-        label = "Percentage change",
-        label_busy = "Updating custom scenario...",
-        type = "secondary"
-      ),
-      bslib::input_task_button(
-        id = ns("linear_button"),
-        label = "Linear extrapolation",
-        label_busy = "Updating custom scenario...",
-        type = "secondary"
-      )
-    ),
-    radioButtons(
-      inputId = ns("custom_display"),
-      label = "Which demand and capacity variables do you want to display below?",
-      width = "100%",
-      choices = c(
-        "All" = "all",
-        "Top 15 important" = "top_n"
-      ),
-      selected = "top_n"
-    ),
-    downloadButton(
-      outputId = ns("download_custom_scenario_inputs"),
-      label = "Download custom input data",
-      style = "width:25%"
-    ),
-    fileInput(
-      ns("custom_scenario_file"),
-      "Choose custom scenario CSV file",
-      accept = c("text/csv",
-                 "text/comma-separated-values,
-                       .csv"),
-      width = "300px"
-    ),
-    # layout_column_wrap(
-    #   width = 0.25,
-    #   bslib::input_task_button(
-    #     id = ns("btn_add_scenario_prediction"),
-    #     icon = icon("plus", style = "color: green;"),
-    #     label = "Make predictions and add to chart",
-    #     label_busy = "Predicting...",
-    #     type = "secondary"
-    #   ),
-    #   bslib::input_task_button(
-    #     id = ns("btn_remove_scenario_prediction"),
-    #     label = "Remove scenarios from chart",
-    #     label_busy = "Removing...",
-    #     type = "secondary"
-    #   )
-    # ),
-    card_body(
-      min_height = "50vh",
-      max_height = "80vh",
-      DT::DTOutput(ns("scenario_data_custom"))
     )
   )
 
@@ -345,6 +281,7 @@ mod_02_scenario_planner_ui <- function(id){
 
   tagList(
     bslib::page_fluid(
+      theme = bslib::bs_theme(version = 5),
       bslib::layout_sidebar(
         sidebar = sidebar(
           selector_card,
@@ -362,10 +299,14 @@ mod_02_scenario_planner_ui <- function(id){
 #' scenario_planner Server Functions
 #' @noRd
 #' @importFrom DT datatable renderDT formatRound editData JS
-#' @importFrom dplyr tibble distinct anti_join join_by as_tibble
+#' @importFrom dplyr tibble distinct anti_join join_by as_tibble setdiff
+#'   bind_rows filter
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
-#' @importFrom shiny downloadHandler
+#' @importFrom shiny downloadHandler observeEvent renderPlot showModal
+#'   modalDialog updateCheckboxInput
+#' @importFrom rmarkdown render
+#' @importFrom utils write.csv read.csv
 #' @param r a `reactiveValues()` list with ics_cd (string, 3 letter code for
 #'   ics), ics_data (tibble containing observed data for performance metrics for
 #'   the selected ICS), performance_plot (ggplot time series of observed and
@@ -535,35 +476,51 @@ mod_02_scenario_planner_server <- function(id, r){
             ), # disable editing metric and domain fields and previous year values
           numeric = "all" # allow only numeric values
         ),
+        extensions = "Buttons",
         selection = "none", # don't need to be able to select rows
         colnames = c(
           "Metric" = "metric",
           "Domain" = "domain"
         ),
+        # options = list(paging = TRUE,
+        #                scrollX=TRUE,
+        #                searching = TRUE,
+        #                ordering = TRUE,
+        #                dom = 'Bfrtip',
+        #                buttons = c('copy', 'csv', 'excel', 'pdf'),
+        #                pageLength=5,
+        #                lengthMenu=c(3,5,10) )
         options = list(
-          pageLength = 25,
+          paging = TRUE,
+          pageLength = 10,
+          lengthMenu = c(5, 10, 15, 25, 100),
+          searching = TRUE,
+          ordering = TRUE,
           autoWidth = TRUE,
-          columnDefs = list(
-            list(
-              targets = 0, # 1st column (0-indexed)
-              createdCell = DT::JS(
-                "function(td, cellData, rowData, row, col) {",
-                "$(td).attr('title', cellData);",
-                "}"
-                # "function(td, cellData, rowData, row, col) {",
-                # # "let words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];",
-                # # "let number = parseInt(cellData);",
-                # "$(td).attr('title', cellData);",
-                # "}"
-              )
-            )
-          )
+          dom = 'Blfrtip',
+          buttons = c('copy', 'csv')
+        #   # columnDefs = list(
+        #   #   list(
+        #   #     targets = 0, # 1st column (0-indexed)
+        #   #     createdCell = DT::JS(
+        #   #       "function(td, cellData, rowData, row, col) {",
+        #   #       "$(td).attr('title', cellData);",
+        #   #       "}"
+        #   #       # "function(td, cellData, rowData, row, col) {",
+        #   #       # # "let words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];",
+        #   #       # # "let number = parseInt(cellData);",
+        #   #       # "$(td).attr('title', cellData);",
+        #   #       # "}"
+        #   #     )
+        #   #   )
+        #   # )
         )
       ) |>
         DT::formatRound(
           columns = numeric_cols
         )
-    })
+    },
+    server = FALSE)
 
     # store editted scenario_data
     # https://rstudio.github.io/DT/shiny.html
@@ -648,16 +605,16 @@ mod_02_scenario_planner_server <- function(id, r){
 
 
     # Download a csv of the custom scenario data table
-    output$download_custom_scenario_inputs <- downloadHandler(
-      filename = "custom_input_data.csv",
-      content = function(file) {
-        write.csv(
-          r$scenario_data$custom,
-          file,
-          row.names = FALSE
-        )
-      }
-    )
+    # output$download_custom_scenario_inputs <- downloadHandler(
+    #   filename = "custom_input_data.csv",
+    #   content = function(file) {
+    #     utils::write.csv(
+    #       r$scenario_data$custom,
+    #       file,
+    #       row.names = FALSE
+    #     )
+    #   }
+    # )
 
     # loads custom file into the database to override the r$scenario_data$custom dataset
     observeEvent(
@@ -668,7 +625,7 @@ mod_02_scenario_planner_server <- function(id, r){
         }
 
         # read in new file
-        file_custom_data <- read.csv(
+        file_custom_data <- utils::read.csv(
           input$custom_scenario_file$datapath,
           check.names = FALSE,
           header = TRUE
@@ -889,7 +846,7 @@ mod_02_scenario_planner_server <- function(id, r){
 # Reporting from the chart ------------------------------------------------
 
     output$report_btn <- downloadHandler(
-      filename <-  "myreport.docx",
+      filename <-  "Shiny planner tool scenarios.docx",
       content = function(file) {
         tempReport <- file.path(tempdir(), "skeleton.Rmd")
 

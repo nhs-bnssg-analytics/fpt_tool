@@ -5,7 +5,7 @@ Authors@R:
     person("Sebastian", "Fox", , "sebastian.fox3@nhs.net", role = c("cre", "aut"))
 Description: Test different scenarios for future planning of resources at
     an Integrated Care System level.
-License: What license is it under?
+License: MIT + file LICENSE
 Depends: 
     R (>= 2.10)
 Imports: 
@@ -13,27 +13,26 @@ Imports:
     config (>= 0.3.2),
     dplyr,
     DT,
-    flextable,
     ggplot2,
     ggrepel,
     glmnet,
     golem (>= 0.4.1),
-    here,
-    parsnip,
     purrr,
     randomForest,
-    readxl,
     recipes,
     rlang,
-    scales,
+    rmarkdown,
     shiny (>= 1.8.0),
+    stats,
     stringr,
     tibble,
     tidyr,
     tidytext,
-    tune
+    tune,
+    utils
 Suggests: 
     devtools,
+    readxl,
     testthat (>= 3.0.0),
     vdiffr
 Config/testthat/edition: 3

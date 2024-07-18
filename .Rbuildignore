@@ -8,3 +8,4 @@ $run_dev.*
 ^\.github$
 ^README\.Rmd$
 ^codecov\.yml$
+^LICENSE\.md$

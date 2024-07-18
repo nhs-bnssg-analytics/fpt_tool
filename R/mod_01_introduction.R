@@ -12,7 +12,8 @@ mod_01_introduction_ui <- function(id) {
 
   metric_ics_selection_card <- card(
     card_header(
-      "Selecting the ICS and metric"
+      "Selecting the ICS and metric",
+      class = "default-card-header"
     ),
     card_body(
       p(
@@ -31,7 +32,8 @@ mod_01_introduction_ui <- function(id) {
 
   scenario_card <- card(
     card_header(
-      "Providing future scenario inputs"
+      "Providing future scenario inputs",
+      class = "default-card-header"
     ),
     card_body(
       p(

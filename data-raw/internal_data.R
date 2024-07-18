@@ -16,6 +16,12 @@ model_accuracy <- snapshot_model_accuracy()
 ## import model
 model <- snapshot_model()
 
+## ics lookup table
+lookup_ics_table <- snapshot_ics_lookup()
+
+## trust to ics proportions
+trust_ics_proportions <- snapshot_trust_ics_proportions()
+
 usethis::use_data(
   ics_names,
   trust_ics_props,
@@ -23,6 +29,8 @@ usethis::use_data(
   metadata,
   model_accuracy,
   model,
+  lookup_ics_table,
+  trust_ics_proportions,
   internal = TRUE,
   overwrite = TRUE
 )

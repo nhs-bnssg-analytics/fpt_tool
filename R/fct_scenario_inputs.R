@@ -37,7 +37,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
 
   historic_data <- ics_data(
     ics_code = ics_code,
-    domain = c("Demand", "Capacity")
+    domain_type = c("Demand", "Capacity")
   ) |>
     select(
       "domain", "metric", "year", "value"
@@ -143,7 +143,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       ) |>
       mutate(
         fit = purrr::map(
-          .x = data,
+          .x = !!sym("data"),
           .f = ~ lm(!!sym("value") ~ !!sym("year"), data = .x, na.action = na.omit)
         ),
         data = purrr::map2(
@@ -380,6 +380,7 @@ update_predictions_and_plot_r <- function(prediction_custom_scenario, model_outp
   }
 }
 
+#' @importFrom stats setNames
 update_observed_time_period_predictions <- function(model_outputs, r) {
   # all available data in long format
   inputs_long <- ics_data(
@@ -413,7 +414,7 @@ update_observed_time_period_predictions <- function(model_outputs, r) {
         input_data = inputs
       )
     ) |>
-    setNames(
+    stats::setNames(
       nm = names(model_outputs)
     ) |>
     lapply(
@@ -464,6 +465,7 @@ update_observed_time_period_predictions <- function(model_outputs, r) {
 #'
 #' @importFrom dplyr bind_rows filter mutate summarise
 #' @importFrom rlang sym
+#' @importFrom utils head
 #'
 #' @noRd
 important_variables <- function(model_permutation_importance,
@@ -501,7 +503,7 @@ important_variables <- function(model_permutation_importance,
 
   if (!is.null(top_n)) {
     important_metrics <- important_metrics |>
-      head(top_n)
+      utils::head(top_n)
   }
 
   important_metrics <- important_metrics |>
@@ -548,6 +550,7 @@ create_scenario_table <- function(custom_table, important_vars, table_type) {
   return(output_table)
 }
 
+#' @importFrom utils head tail
 update_custom_tables <- function(input_table, model_permutation_importance, performance_metrics, table_options, r) {
 
   table_options <- match.arg(
@@ -575,10 +578,10 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
 
     n_value <- 15
     r$scenario_data$custom_display <- all_important_variables |>
-      head(n_value)
+      utils::head(n_value)
 
     r$scenario_data$custom_stored <- all_important_variables |>
-      tail(-n_value) |>
+      utils::tail(-n_value) |>
       bind_rows(all_remaining_variables)
 
   } else if (table_options ==  "all") {
@@ -616,8 +619,8 @@ check_scenario_inputs <- function(inputs, historic_data) {
 
   historic_range <- historic_data |>
     dplyr::summarise(
-      min_val = min(value, na.rm = TRUE),
-      max_val = max(value, na.rm = TRUE),
+      min_val = min(!!sym("value"), na.rm = TRUE),
+      max_val = max(!!sym("value"), na.rm = TRUE),
       .by = !!sym("metric")
     )
 

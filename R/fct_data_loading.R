@@ -65,15 +65,16 @@ ics_data <- function(ics_code, domain_type = NULL) {
 #'   broad
 #' @importFrom dplyr filter mutate summarise any_of mutate bind_rows
 #' @importFrom stringr str_replace_all
+#' @importFrom rlang sym
 #' @noRd
 replace_narrow_age_bands <- function(ics_timeseries) {
   age_band_data <- ics_timeseries |>
     filter(
-      grepl("age band", metric)
+      grepl("age band", !!sym("metric"))
     ) |>
     mutate(
       metric = str_replace_all(
-        metric,
+        !!sym("metric"),
         c("0-9" = "0-29",
           "10-19" = "0-29",
           "20-29" = "0-29",
@@ -88,8 +89,8 @@ replace_narrow_age_bands <- function(ics_timeseries) {
       )
     ) |>
     summarise(
-      numerator = sum(numerator),
-      denominator = mean(denominator),
+      numerator = sum(!!sym("numerator")),
+      denominator = mean(!!sym("denominator")),
       .by = any_of(
         c(
           "year", "quarter", "month", "org", "frequency", "metric"
@@ -97,12 +98,12 @@ replace_narrow_age_bands <- function(ics_timeseries) {
       )
     ) |>
     mutate(
-      value = (numerator / denominator) * 100
+      value = (!!sym("numerator") / !!sym("denominator")) * 100
     )
 
   ics_timeseries <- ics_timeseries |>
     filter(
-      !grepl("age band", metric)
+      !grepl("age band", !!sym("metric"))
     ) |>
     bind_rows(
       age_band_data

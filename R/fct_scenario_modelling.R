@@ -10,11 +10,11 @@
 #'   performance metrics
 #' @importFrom tidyr pivot_wider pivot_longer complete
 #' @importFrom dplyr select bind_cols mutate left_join setdiff bind_rows filter
-#' @importFrom parsnip predict.model_fit
 #' @importFrom purrr lmap
 #' @importFrom rlang sym
 #' @import recipes
-#' @import glmnet
+#' @importFrom glmnet glmnet
+#' @importFrom randomForest randomForest
 #' @noRd
 model_scenario_data <- function(scenario_data, ics_code, model) {
 
@@ -347,9 +347,10 @@ model_descriptions <- function(model) {
 #'
 #' @importFrom purrr pluck
 #' @importFrom dplyr select all_of bind_cols mutate lag row_number pick
-#'   everything
+#'   everything contains
 #' @importFrom rlang sym
 #' @importFrom tune extract_fit_parsnip
+#' @importFrom stats predict
 #' @noRd
 make_predictions <- function(model, input_data) {
 
@@ -377,14 +378,14 @@ make_predictions <- function(model, input_data) {
       )
 
     input_data <- input_data |>
-      arrange(org, year) |>
+      arrange(!!sym("org"), !!sym("year")) |>
       mutate(
         across(
           !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
           function(x) ifelse(is.na(lag(x)), 0, x - lag(x))
         ),
         .by = c(
-          org
+          !!sym("org")
         )
       )
   }
@@ -394,7 +395,7 @@ make_predictions <- function(model, input_data) {
       tune::extract_fit_parsnip() |>
       pluck("spec", "args", "penalty")
 
-    prediction <- predict(
+    prediction <- stats::predict(
       wf,
       new_data = input_data,
       penalty = lambda
@@ -406,7 +407,7 @@ make_predictions <- function(model, input_data) {
     # situation
     predict_with_error_handle <- function(object, inputs) {
       pred <- try(
-        predict(object, new_data = inputs),
+        stats::predict(object, new_data = inputs),
         silent = TRUE
       )
 
@@ -430,7 +431,7 @@ make_predictions <- function(model, input_data) {
             dplyr::everything()
           )
         ),
-        .by = id
+        .by = !!sym("id")
       ) |>
       dplyr::select(".pred")
   }
