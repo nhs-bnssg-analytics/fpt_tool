@@ -21,7 +21,8 @@ snapshot_ics_data <- function(broad_age_bands = TRUE) {
   metrics <- metadata |>
     distinct(
       !!sym("metric"),
-      !!sym("domain")
+      !!sym("domain"),
+      !!sym("theme")
     )
 
   ics_timeseries <- list.files(
@@ -55,6 +56,7 @@ snapshot_ics_data <- function(broad_age_bands = TRUE) {
       "year",
       "org",
       "domain",
+      "theme",
       "metric",
       "numerator",
       "denominator",
@@ -86,6 +88,7 @@ snapshot_metadata <- function() {
     dplyr::select(
       "metric",
       "domain",
+      "theme",
       "numerator_description",
       "denominator_description"
     )
