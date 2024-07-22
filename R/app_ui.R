@@ -14,12 +14,20 @@ app_ui <- function(request) {
     tagList(
       navset_tab(
         nav_panel(
-          title = "About",
+          title = "How to use the tool",
           mod_01_introduction_ui("01_introduction_1")
         ),
         nav_panel(
           title = "Scenario planner",
           mod_02_scenario_planner_ui("02_scenario_planner_1")
+        ),
+        nav_panel(
+          title = "How good are the models?",
+          mod_03_model_info_ui("03_model_info_1")
+        ),
+        nav_panel(
+          title = "About",
+          mod_04_about_ui("04_about_1")
         )
       )
     )

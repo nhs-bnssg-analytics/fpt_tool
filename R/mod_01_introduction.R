@@ -9,46 +9,136 @@
 #' @importFrom shiny NS tagList
 mod_01_introduction_ui <- function(id) {
   ns <- NS(id)
-  tagList()
-  fluidPage(
-    fluidRow(
-      column(width = 8, h2(("Background"))),
-      column(width = 8, p(
-        "Understanding system demand and capacity is essential for operational and strategic healthcare planning. A common approach to demand and capacity planning is spreadsheet modelling and simulating patient flow through the health system. Within each Integrated Care System (ICS) these kinds of models are possible to make, and often already exist. It is much harder to do this at a regional level because the structures and populations in each ICS are very different to one another. A tool that is developed to try and capture the intricacies and detail in one ICS is therefore likely to be unrepresentative and open to challenge if used to inform local decision making in another. Additionally, each ICS has developed their own bespoke tools to understand demand and capacity, which already supports local decision making, particularly in the acute setting."
-      )),
-      column(width = 8, p(
-        "This tool has been developed using only publicly available data for the whole of England. These data are described in more detail on the 'Data' tab. The methods underpinning data processing and modelling can be found",
-        a(tags$strong("here."), href = "https://nhs-bnssg-analytics.github.io/d_and_c/outputs/01_index.html"),
-        "The analysis and modelling was done using R, and has been made publicly available",
-        a(tags$strong("here."), href = "https://github.com/nhs-bnssg-analytics/d_and_c"),
-      )),
-      column(width = 8, h2(("How to use the tool"))),
-      column(width = 8, p("On the Scenario planner tab:")),
-      column(width = 8, p("1. Select the ICS")),
-      column(width = 8, p("2. Select and delete (using backspace) the performance metrics that are not of interest")),
-      column(width = 8, p("3. Scroll down to the bottom of the page")),
-      column(width = 8, p("4. Select the number of years into the future for modelling")),
-      column(width = 8, p("5. In the Template scenarios tab, deselect any scenarios that are not of interest")),
-      column(width = 8, p("6. If the percent change or linear scenarios are retained, update their inputs as desired")),
-      column(width = 8, p("7. Select the custom scenario tab")),
-      column(width = 8, p("8. The custom scenario table is pre-populated from the 'last observed value' scenario. To update the whole table from another scenario, click the appropriate button at the top of the tab")),
-      column(width = 8, p("9. Any value in the table can be changed by double clicking in a cell and typing a new value, followed by the tab key")),
-      column(width = 8, p("10. Once all fo the new values have been entered, click the 'Update predictions' button below the chart and see the effect of the scenarios to future years")),
-      column(width = 8, h2("Questions this can support")),
-      column(width = 8, p(
-        "This tool should be used to support and build cases for medium term investment. It can be used in different ways. For example, with a particular performance metric in mind, it can be used to see what mix of investment over time can help improve performance. Separately, it can be used to understand how investment in a particular capacity input, or population health management programme which will result in changes to demand, will affect multiple performance metrics."
-      )),
-      column(width = 8, h2("Limitations")),
-      column(width = 8, p("Missing variables can lead to relationships that aren't causal. Estimations applied to actue data. ")),
-      column(width = 8, h2("Contact us")),
-      column(width = 8, p(
-        "If you have any feedback or questions, please get in touch at",
-        a(tags$strong("sebastian.fox3@nhs.net"),
-          href = "mailto:sebastian.fox3@nhs.net?subject=Demand Capacity planning tool"
+
+  metric_ics_selection_card <- card(
+    card_header(
+      "Selecting the ICS and metric",
+      class = "default-card-header"
+    ),
+    card_body(
+      p(
+        HTML(
+          paste(
+            "On the <b>Scenario planner</b> tab in the <i>Make ICS and metric selection</i> area:",
+            "<ol><li>Select the ICS</li>",
+            "<li>Select and delete (using backspace) the performance metrics that are not of interest</li></ol>",
+            "Note the pie chart updates after making the ICS selection.",
+            "This informs the user how the acute metrics within the tool are calculated for each ICS.",
+            "The proportions displayed in the pie chart are used as a weighting for how much each acute metric contributes to the overall ICS metric."
+          )
         )
-      ))
+      )
     )
   )
+
+  scenario_card <- card(
+    card_header(
+      "Providing future scenario inputs",
+      class = "default-card-header"
+    ),
+    card_body(
+      p(
+        HTML(
+          paste(
+            "The bottom of the <b>Scenario planner</b> tab, in the <i>Scenario selector</i> section, has functionality to provide different future scenarios for demand and capacity.",
+            "<br>First, select the number of years for planning",
+            "<br>Two tabs are then available: <b>Custom</b> (the default) and <b>Template</b>.",
+            "These tabs provide data points for each input metric for future years.",
+            "These metrics are provided to the models, and predictions of performance in future years are presented in the <i>Performance viewer</i> section.",
+            "<h4>Template scenario tab</h3>",
+            "This tab has three simple options:",
+            "<ol><li>Last observed value - apply the last observed value for each input metric to all subsequent years prior to modelling.</li>",
+            "<li>Percentage change - apply a blanket, user-defined, percentage change to all input metrics.",
+            "This can be an increase or a decrease.",
+            "<li>Linear change - determine future values based on a linear extrapolation of previously observed values.",
+            "The number of observed values used for the exptrapolation is determined by the user.</li></ol>",
+            "Note, Input data are contstrained to between 0 and 100 if they are a proportion.",
+            "Input data are also constrained so they always remain within a range of values that have previously been seen.</li>",
+            "<br><br>By selecting 'Display on chart' or using the 'Apply...' buttons, the future values are calculated and passed through the models to estimate future performance values.",
+            "<h4>Custom scenario tab</h3>",
+            "Make use of the table of metrics at the bottom of the <i>Scenario selector</i> section.",
+            "Note, the order of the metrics in the table are the order of how influential the metrics on the selected performance metrics.",
+            "<ol><li>Provide the custom scenario a name.</li>",
+            "<li>Select the method to pre-populate the scenario data with based on the three template scenarios described above (the default values are the 'last observed value' template scenario).",
+            "Note, for the percentage change or linear options, the inputs are populated using the settings in the <b>Template tab</b>.</li>",
+            "<li>There are two methods of applying a custom scenario:",
+            "<ul><li>Interactive (simple scenarios): double click on the data cells in the table and interactively change their values.</li>",
+            "<li>Export-import (complex scenarios):",
+            "<ol type = 'i'><li>Select 'Copy' or 'CSV' at the top of the table</li>",
+            "<li>Save the data in a csv file.</li>",
+            "<li>Make edits to the csv file without changing column names or names of the metrics.</li>",
+            "<li>Re-save the file.</li>",
+            "<li>Within the tool, select 'Browse...' under 'Import csv' to import the csv file.</li>",
+            "<li>Check that the values in the table have been overwritten with the values from the file.</li></ol></ul>",
+            "<li>Press the green '+' symbol next to the scenario name to put the scenario through the models and add to the chart(s).</li>",
+            "</li></ol>"
+          )
+        )
+      )
+    )
+  )
+
+  reporting_card <- card(
+    card_header(
+      "Reporting",
+      class = "default-card-header"
+    ),
+    card_body(
+      p(
+        "Once all scenarios have been added to the chart(s), the 'Generate report' button (beneath the charts) allows the user to export a word document with the numbers behind the charts."
+      )
+    )
+  )
+
+  modification_card <- card(
+    card_header(
+      "Removing scenarios",
+      class = "default-card-header"
+    ),
+    card_body(
+      p(
+        paste(
+          "If 'Template' scenarios have been added, they can be removed by simply unchecking the box associated with them.",
+          "If custom scenarios have been added, they can be removed by typing their names into the 'Scenario name' box, and clicking the red '-' symbol."
+        )
+      )
+    )
+  )
+  tagList(
+    bslib::page_fluid(
+      metric_ics_selection_card,
+      scenario_card,
+      bslib::layout_columns(
+        reporting_card,
+        modification_card,
+        col_widths = 1/2
+      )
+    )
+  )
+  #       column(
+  #         width = 8,
+  #         p(
+  #           HTML(
+  #             paste(
+  #               "On the Scenario planner tab:",
+  #               "<ol><li>Select the ICS</li>",
+  #               "<li>Select and delete (using backspace) the performance metrics that are not of interest</li>",
+  #               "<li>Scroll down to the bottom of the page</li>",
+  #               "<li>Select the number of years into the future for modelling</li>",
+  #               "<li>In the Template scenarios tab, deselect any scenarios that are not of interest</li>",
+  #               "<li>If the percent change or linear scenarios are retained, update their inputs as desired</li>",
+  #               "<li>Select the custom scenario tab</li>",
+  #               "<li>The custom scenario table is pre-populated from the 'last observed value' scenario. To update the whole table from another scenario, click the appropriate button at the top of the tab</li>",
+  #               "<li>Any value in the table can be changed by double clicking in a cell and typing a new value, followed by the tab key</li>",
+  #               "<li>Once all of the new values have been entered, click the 'Update predictions' button below the chart and see the effect of the scenarios to future years</li></ol>"
+  #             )
+  #           )
+  #         )
+  #       )
+  #     )
+  #   )
+  # )
+
 }
 
 #' 01_introduction Server Functions
