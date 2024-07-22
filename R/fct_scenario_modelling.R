@@ -45,7 +45,7 @@ model_scenario_data <- function(scenario_data, ics_code, model) {
     mutate(
       org = ics_code
     ) |>
-    select(!c("domain")) |>
+    select(!c("theme")) |>
     tidyr::pivot_longer(
       cols = !c("metric", "org"),
       names_to = "year",

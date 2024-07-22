@@ -32,8 +32,8 @@ test_that("data dimensions last_known_year ", {
   )
   expect_equal(
     names(df)[1:2],
-    c("metric", "domain"),
-    info = "metric and domain are first 2 column names for scenario_inputs() 'last_known_year'"
+    c("metric", "theme"),
+    info = "metric and theme are first 2 column names for scenario_inputs() 'last_known_year'"
   )
   expect_equal(
     df |> dplyr::count(metric) |> filter(n > 1) |> nrow(),
@@ -56,8 +56,8 @@ test_that("data dimensions percent_change ", {
   )
   expect_equal(
     names(df)[1:2],
-    c("metric", "domain"),
-    info = "metric and domain are first 2 column names for scenario_inputs() 'percent_change'"
+    c("metric", "theme"),
+    info = "metric and theme are first 2 column names for scenario_inputs() 'percent_change'"
   )
   expect_equal(
     df |> dplyr::count(metric) |> filter(n > 1) |> nrow(),
@@ -80,8 +80,8 @@ test_that("data dimensions linear ", {
   )
   expect_equal(
     names(df)[1:2],
-    c("metric", "domain"),
-    info = "metric and domain are first 2 column names for scenario_inputs() 'linear'"
+    c("metric", "theme"),
+    info = "metric and theme are first 2 column names for scenario_inputs() 'linear'"
   )
   expect_equal(
     df |> dplyr::count(metric) |> filter(n > 1) |> nrow(),
@@ -139,8 +139,8 @@ test_that("reset_scenarios works as expected", {
       ) |>
       unlist() |>
       unique(),
-    c("metric", "domain"),
-    info = "metric and domain are the character fields in the reset_scenarios function"
+    c("metric", "theme"),
+    info = "metric and theme are the character fields in the reset_scenarios function"
   )
 
 })
@@ -197,7 +197,7 @@ test_that("the scenario data checker function ensures all values that are not re
 
   inputs <- tibble(
     metric = dummy_metrics,
-    domain = c("Capacity", "Performance", "Demand", "Capacity", "Demand")
+    theme = c("Capacity", "Performance", "Demand", "Capacity", "Demand")
   ) |>
     cross_join(
       tibble(
@@ -224,7 +224,7 @@ test_that("the scenario data checker function ensures all values that are not re
 
   historic_data <- inputs |>
     distinct(
-      metric, domain
+      metric, theme
     ) |>
     cross_join(
       tibble(

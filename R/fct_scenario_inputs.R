@@ -40,7 +40,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
     domain_type = c("Demand", "Capacity")
   ) |>
     select(
-      "domain", "metric", "year", "value"
+      "theme", "metric", "year", "value"
     )
 
   end_year_range <- historic_data |>
@@ -64,7 +64,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       tidyr::complete(
         tidyr::nesting(
           !!sym("metric"),
-          !!sym("domain")
+          !!sym("theme")
         ),
         year = seq(
           from = earliest_end_year,
@@ -74,7 +74,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       ) |>
       dplyr::group_by(
         !!sym("metric"),
-        !!sym("domain")) |>
+        !!sym("theme")) |>
       tidyr::fill(
         !!sym("value"),
         .direction = "down"
@@ -91,7 +91,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       tidyr::complete(
         tidyr::nesting(
           !!sym("metric"),
-          !!sym("domain")
+          !!sym("theme")
         ),
         year = seq(
           from = earliest_end_year,
@@ -101,7 +101,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
       ) |>
       dplyr::group_by(
         !!sym("metric"),
-        !!sym("domain")) |>
+        !!sym("theme")) |>
       mutate(
         index = cumsum(is.na(!!sym("value")))
       ) |>
@@ -121,12 +121,12 @@ scenario_inputs <- function(ics_code, horizon, scenario,
         !!sym("year") >= max(!!sym("year")) - (linear_years - 1),
         .by = c(
           !!sym("metric"),
-          !!sym("domain")
+          !!sym("theme")
         )
       ) |>
       group_by(
         !!sym("metric"),
-        !!sym("domain")
+        !!sym("theme")
       ) |>
       tidyr::complete(
         year = seq(
@@ -173,7 +173,7 @@ scenario_inputs <- function(ics_code, horizon, scenario,
   wide_metric_data <- long_metric_data |>
     ungroup() |>
     arrange(
-      !!sym("domain"),
+      !!sym("theme"),
       !!sym("metric"),
       !!sym("year")
     ) |>
@@ -387,7 +387,7 @@ update_observed_time_period_predictions <- function(model_outputs, r) {
     ics_code = r$ics_cd
   ) |>
     dplyr::select(
-      !c("domain", "numerator", "denominator", "value_type")
+      !c("domain", "theme", "numerator", "denominator", "value_type")
     )
 
   # make wide and create lag versions
@@ -560,7 +560,7 @@ check_scenario_inputs <- function(inputs, historic_data) {
       .by = !!sym("metric")
     )
 
-  reference_metrics <- c("metric", "domain", "min_val", "max_val")
+  reference_metrics <- c("metric", "theme", "min_val", "max_val")
 
   inputs <- inputs |>
     left_join(

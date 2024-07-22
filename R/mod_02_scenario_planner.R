@@ -440,7 +440,7 @@ mod_02_scenario_planner_server <- function(id, r){
 
       numeric_cols <- setdiff(
         names(r$scenario_data$custom),
-        c("metric", "domain")
+        c("metric", "domain", "theme")
       )
 
       DT::datatable(
@@ -454,14 +454,14 @@ mod_02_scenario_planner_server <- function(id, r){
                     names(r$scenario_data$custom)
                   ) - 2
               )
-            ), # disable editing metric and domain fields and previous year values
+            ), # disable editing metric and theme fields and previous year values
           numeric = "all" # allow only numeric values
         ),
         extensions = "Buttons",
         selection = "none", # don't need to be able to select rows
         colnames = c(
           "Metric" = "metric",
-          "Domain" = "domain"
+          "Theme" = "theme"
         ),
         options = list(
           paging = TRUE,
