@@ -119,13 +119,4 @@ tbls <- split(
 
 There are limitations with this approach and it is recommended to use this information in combination with other information sources. The main limitation is the availability of data combined with the data driven approach. There may not be related, publicly available information for a performance metric. The model may, therefore, end up either selecting other unrelated metrics to determine its prediction, or even base the prediction largely on the previous value for that performance metric.
 
-## Input scenario data
-
-The table below contains the inputs used to create the charts above.
-
-```{r}
-#| label: data-tables
-
-print(names(params$scenario_data))
-```
 
