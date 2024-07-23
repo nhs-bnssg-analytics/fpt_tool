@@ -229,11 +229,12 @@ mod_02_scenario_planner_ui <- function(id){
       ns("performance_plot"),
       height = '60vh'
     ),
-    downloadButton(
-      ns("report_btn"),
-      "Generate report",
-      style = "width:25%;"
-    )
+    # downloadButton(
+    #   ns("report_btn"),
+    #   "Generate report",
+    #   style = "width:25%;"
+    # )
+    uiOutput(ns("download_button"))
   )
 
   scenario_card <- card(
@@ -816,7 +817,18 @@ mod_02_scenario_planner_server <- function(id, r){
 
 # Reporting from the chart ------------------------------------------------
 
+    output$download_button <- renderUI({
+      if (!is.null(r$predictions)) {
+        downloadButton(
+          ns("report_btn"),
+          "Generate report",
+          style = "width:25%;"
+        )
+      }
+    })
+
     output$report_btn <- downloadHandler(
+
       filename <-  "Shiny planner tool scenarios.docx",
       content = function(file) {
         tempReport <- file.path(tempdir(), "skeleton.Rmd")
@@ -829,7 +841,6 @@ mod_02_scenario_planner_server <- function(id, r){
         params <- list(
           performance_plot = r$performance_plot,
           prediction_data = r$predictions,
-          scenario_data = r$scenario_data,
           ics_name = input$ics_selection
         )
         rmarkdown::render(

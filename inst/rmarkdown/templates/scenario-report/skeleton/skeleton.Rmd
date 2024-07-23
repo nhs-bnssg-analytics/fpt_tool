@@ -5,7 +5,6 @@ output: word_document
 params:
   performance_plot: NULL
   prediction_data: NULL
-  scenario_data: NULL
   ics_name: NULL
 ---
 
@@ -26,7 +25,7 @@ library(flextable)
 ```
 
 
-This report was built with version xxx of the tool.
+This report was built with version `r packageVersion("planner")` of the tool.
 
 ## Introduction
 
