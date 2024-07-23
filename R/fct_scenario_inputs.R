@@ -378,8 +378,13 @@ update_predictions_and_plot_r <- function(prediction_custom_scenario, model_outp
       r$performance_plot <- plot_hold_message()
     }
   }
+
+  invisible(r)
 }
 
+#' @importFrom tidyr pivot_wider
+#' @importFrom purrr lmap
+#' @importFrom dplyr mutate select filter bind_rows
 #' @importFrom stats setNames
 update_observed_time_period_predictions <- function(model_outputs, r) {
   # all available data in long format
@@ -512,7 +517,8 @@ important_variables <- function(model_permutation_importance,
   return(important_metrics)
 }
 
-#' @importFrom utils head tail
+#' @importFrom dplyr filter mutate arrange
+#' @importFrom rlang sym
 update_custom_tables <- function(input_table, model_permutation_importance, performance_metrics, r) {
 
   # character vector of the most important variables based on the selected
@@ -531,6 +537,8 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
       )
     ) |>
     arrange(!!sym("metric"))
+
+  invisible(r)
 }
 
 
