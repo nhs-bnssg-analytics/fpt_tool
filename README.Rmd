@@ -38,8 +38,7 @@ To launch the Shiny app following installation:
 ```{r}
 #| label: "usage"
 #| eval: false
-library(planner)
-app()
+planner::run_app()
 ```
 
 ## Functionality

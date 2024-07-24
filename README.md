@@ -31,8 +31,7 @@ devtools::install_github("nhs-bnssg-analytics/shiny_planner")
 To launch the Shiny app following installation:
 
 ``` r
-library(planner)
-app()
+planner::run_app()
 ```
 
 ## Functionality
