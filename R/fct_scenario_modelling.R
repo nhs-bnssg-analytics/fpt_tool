@@ -378,16 +378,16 @@ make_predictions <- function(model, input_data) {
       )
 
     input_data <- input_data |>
-      arrange(!!sym("org"), !!sym("year")) |>
-      mutate(
-        across(
-          !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
-          function(x) ifelse(is.na(lag(x)), 0, x - lag(x))
-        ),
-        .by = c(
-          !!sym("org")
-        )
-      )
+      arrange(!!sym("org"), !!sym("year")) #|>
+      # mutate(
+      #   across(
+      #     !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
+      #     function(x) ifelse(is.na(lag(x)), 0, x - lag(x))
+      #   ),
+      #   .by = c(
+      #     !!sym("org")
+      #   )
+      # )
   }
 
   if (grepl("glm", model_configuration$engine)) {
