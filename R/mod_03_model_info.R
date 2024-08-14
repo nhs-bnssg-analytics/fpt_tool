@@ -24,10 +24,10 @@ mod_03_model_info_ui <- function(id){
             "Each performance metric is built with a different model.",
             "Each model is selected from a number of models using different length of data, different inputs and different modelling methods.",
             "The models are assessed by:",
-            "<ul><li>predicting the outcome on a subset of the observed data.</li>",
+            "<ol><li>Predicting the outcome on a subset of the observed data using the model.</li>",
             "<li>Those predictions are compared with the observed values.</li>",
-            "<li>For each data point, the absolute difference between the two values is calculated, and calculated as a percentage of the observed value.</li>",
-            "<li>An average (mean) is taken across all these data points, which is the resulting score for that model.</li></ul>",
+            "<li>For each data point, the absolute difference between the two values is calculated, which is then calculated as a percentage of the observed value ('percentage error').</li>",
+            "<li>An average (mean) of these percentage errors is calculated, which is the resulting score for that model.</li></ol>",
             "The model with the lowest mean absolute percentage error for each performance metric is then selected.",
             "A number of 10% in the charts below can be interpreted as 'on average, the prediction error is 10% of the real value for this model'."
           )
@@ -58,7 +58,7 @@ mod_03_model_info_ui <- function(id){
           paste(
           "Use the following charts <i>along with other evidence</i> to justify strategies.<br><br>",
           "The important variables from the models are calculated using a method called 'permutation importance'.",
-          "This method takes the existing model, then calculates the increase in the error when the values for each input metric in turn is shuffled at random. This shuffling process is done 10 times for eachinput metric, and an average and standard deviation are calculated."
+          "This method takes the existing model, then calculates the increase in the error when the values for each input metric in turn is shuffled at random. This shuffling process is done 10 times for each input metric, and an average and standard deviation are calculated."
           )
         )
       )
@@ -103,12 +103,15 @@ mod_03_model_info_server <- function(id){
         ) +
         geom_col(
           colour = "black",
-          fill = NA
+          fill = "lightgrey"
         ) +
         theme_bw() +
         labs(
           y = "",
-          x = "Mean average percentage error (%)"
+          x = "Mean absolute percentage error (%)"
+        ) +
+        scale_y_discrete(
+          limits = rev
         )
     }, res = 96)
 
@@ -135,8 +138,8 @@ mod_03_model_info_server <- function(id){
           )
         ) +
         geom_col(
-          fill = NA,
-          colour = "black"
+          colour = "black",
+          fill = "lightgrey"
         ) +
         geom_errorbarh(
           aes(
