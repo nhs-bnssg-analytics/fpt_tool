@@ -6,8 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/nhs-bnssg-analytics/shiny_planner/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/nhs-bnssg-analytics/shiny_planner/actions/workflows/R-CMD-check.yaml)
-[![Codecov test
-coverage](https://codecov.io/gh/nhs-bnssg-analytics/shiny_planner/branch/main/graph/badge.svg)](https://app.codecov.io/gh/nhs-bnssg-analytics/shiny_planner?branch=main)
+[![codecov](https://codecov.io/gh/nhs-bnssg-analytics/shiny_planner/graph/badge.svg?token=XE87POPK37)](https://codecov.io/gh/nhs-bnssg-analytics/shiny_planner)
 <!-- badges: end -->
 
 The planner package is a Shiny application designed to assist staff in
@@ -32,8 +31,7 @@ devtools::install_github("nhs-bnssg-analytics/shiny_planner")
 To launch the Shiny app following installation:
 
 ``` r
-library(planner)
-app()
+planner::run_app()
 ```
 
 ## Functionality

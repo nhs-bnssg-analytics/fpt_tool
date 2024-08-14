@@ -165,7 +165,8 @@ plot_trust_icb_proportions <- function(ics_code) {
       nudge_x = 1,
       color = "black",
       show.legend = FALSE,
-      size = 4
+      size = 4,
+      seed = 123
     ) +
     scale_fill_brewer(palette = "Set1") +
     labs(
@@ -178,6 +179,7 @@ plot_trust_icb_proportions <- function(ics_code) {
 }
 
 #' @importFrom rlang sym
+#' @import ggplot2
 plot_hold_message <- function() {
   p <- tibble::tibble(
     x = 1,
@@ -209,7 +211,7 @@ plot_hold_message <- function() {
       panel.border = element_rect(
         colour = "black",
         fill = NA,
-        size = 1
+        linewidth = 1
       )
     )
 

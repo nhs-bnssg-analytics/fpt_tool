@@ -32,8 +32,8 @@ test_that("data dimensions last_known_year ", {
   )
   expect_equal(
     names(df)[1:2],
-    c("metric", "domain"),
-    info = "metric and domain are first 2 column names for scenario_inputs() 'last_known_year'"
+    c("metric", "theme"),
+    info = "metric and theme are first 2 column names for scenario_inputs() 'last_known_year'"
   )
   expect_equal(
     df |> dplyr::count(metric) |> filter(n > 1) |> nrow(),
@@ -56,8 +56,8 @@ test_that("data dimensions percent_change ", {
   )
   expect_equal(
     names(df)[1:2],
-    c("metric", "domain"),
-    info = "metric and domain are first 2 column names for scenario_inputs() 'percent_change'"
+    c("metric", "theme"),
+    info = "metric and theme are first 2 column names for scenario_inputs() 'percent_change'"
   )
   expect_equal(
     df |> dplyr::count(metric) |> filter(n > 1) |> nrow(),
@@ -80,8 +80,8 @@ test_that("data dimensions linear ", {
   )
   expect_equal(
     names(df)[1:2],
-    c("metric", "domain"),
-    info = "metric and domain are first 2 column names for scenario_inputs() 'linear'"
+    c("metric", "theme"),
+    info = "metric and theme are first 2 column names for scenario_inputs() 'linear'"
   )
   expect_equal(
     df |> dplyr::count(metric) |> filter(n > 1) |> nrow(),
@@ -139,8 +139,8 @@ test_that("reset_scenarios works as expected", {
       ) |>
       unlist() |>
       unique(),
-    c("metric", "domain"),
-    info = "metric and domain are the character fields in the reset_scenarios function"
+    c("metric", "theme"),
+    info = "metric and theme are the character fields in the reset_scenarios function"
   )
 
 })
@@ -197,7 +197,7 @@ test_that("the scenario data checker function ensures all values that are not re
 
   inputs <- tibble(
     metric = dummy_metrics,
-    domain = c("Capacity", "Performance", "Demand", "Capacity", "Demand")
+    theme = c("Capacity", "Performance", "Demand", "Capacity", "Demand")
   ) |>
     cross_join(
       tibble(
@@ -224,7 +224,7 @@ test_that("the scenario data checker function ensures all values that are not re
 
   historic_data <- inputs |>
     distinct(
-      metric, domain
+      metric, theme
     ) |>
     cross_join(
       tibble(
@@ -277,6 +277,260 @@ test_that("the scenario data checker function ensures all values that are not re
       sum(),
     0,
     info = "there are no values greater than 100 for proportion metrics after being passed through check_scenario_inputs"
+  )
+
+})
+
+
+
+# predictions testing -----------------------------------------------------
+
+test_that("update_prediction_and_plot_r", {
+
+  ics_code <- "QUY"
+  all_ics_data <- ics_data(
+    ics_code
+  )
+
+
+  scenario_data_inputs <- scenario_inputs(
+    ics_code = ics_code,
+    horizon = 4,
+    scenario = "last_known"
+  )
+
+  scenario <- "custom"
+  scenario_data <- list()
+  scenario_data[[scenario]] <- scenario_data_inputs
+
+  testing <- update_predictions_and_plot_r(
+    prediction_custom_scenario = "testing",
+    model_outputs = load_model_object("wf"),
+    scenario_name = scenario,
+    performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+    r = list(
+      ics_cd = ics_code,
+      ics_data = all_ics_data,
+      scenario_data = scenario_data
+    )
+  )
+
+  predictions <- purrr::pluck(
+    testing, "predictions"
+  )
+
+  # test incorrect scenario_name
+  expect_snapshot(
+    update_predictions_and_plot_r(
+      prediction_custom_scenario = "testing",
+      model_outputs = load_model_object("wf"),
+      scenario_name = "incorrect_name",
+      performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+      r = list(
+        ics_cd = ics_code,
+        ics_data = all_ics_data,
+        scenario_data = scenario_data
+      )
+    ),
+    error = TRUE
+  )
+
+  # test duplicate custom scenario name??
+  expect_snapshot(
+    custom_test <- update_predictions_and_plot_r(
+      prediction_custom_scenario = "testing",
+      model_outputs = load_model_object("wf"),
+      scenario_name = scenario,
+      performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+      r = list(
+        ics_cd = ics_code,
+        ics_data = all_ics_data,
+        scenario_data = scenario_data,
+        predictions = predictions
+      )
+    ),
+    error = TRUE
+  )
+})
+
+test_that("multiple custom scenarios", {
+  scenario <- "custom"
+  ics_code <- "QUY"
+  scenario_data_inputs <- scenario_inputs(
+    ics_code = ics_code,
+    horizon = 4,
+    scenario = "last_known"
+  )
+
+  scenario_data <- list()
+  scenario_data[[scenario]] <- scenario_data_inputs
+
+  all_ics_data <- ics_data(
+    ics_code
+  )
+
+  testing <- update_predictions_and_plot_r(
+    prediction_custom_scenario = "testing",
+    model_outputs = load_model_object("wf"),
+    scenario_name = scenario,
+    performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+    r = list(
+      ics_cd = ics_code,
+      ics_data = all_ics_data,
+      scenario_data = scenario_data
+    )
+  )
+
+  predictions <- purrr::pluck(
+    testing, "predictions"
+  )
+  # test multiple custom scenarios
+  expect_equal(
+    update_predictions_and_plot_r(
+      prediction_custom_scenario = "testing",
+      model_outputs = load_model_object("wf"),
+      scenario_name = scenario,
+      performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+      r = list(
+        ics_cd = ics_code,
+        ics_data = all_ics_data,
+        scenario_data = scenario_data,
+        predictions = predictions |>
+          mutate(
+            value_type = "Prediction - old"
+          )
+      )
+    ) |>
+      purrr::pluck("predictions") |>
+      dplyr::distinct(!!sym("value_type")) |>
+      pull(),
+    c("Prediction - old", "Prediction - testing"),
+    label = "multiple custom scenarios"
+  )
+
+  # test that there are no duplicate years for predictions within scenario type for custom scenario
+  expect_equal(
+    predictions |>
+      dplyr::count(!!sym("year"), !!sym("value_type")) |>
+      dplyr::pull() |>
+      unique(),
+    1,
+    label = "test that there are no duplicate years for predictions within scenario type"
+  )
+
+  expect_equal(
+    names(testing),
+    c("ics_cd", "ics_data", "scenario_data", "predictions", "performance_plot"),
+    label = "test that the outputs object contains all of the correct named items"
+  )
+})
+
+
+test_that("overwriting previous template scenario", {
+  # testing non-custom scenario
+
+  ics_code <- "QUY"
+  scenario <- "last_known"
+  scenario_data_inputs <- scenario_inputs(
+    ics_code = ics_code,
+    horizon = 4,
+    scenario = scenario
+  )
+
+  scenario_data <- list()
+  scenario_data[[scenario]] <- scenario_data_inputs
+
+  all_ics_data <- ics_data(
+    ics_code
+  )
+
+  testing_last_known <- update_predictions_and_plot_r(
+    prediction_custom_scenario = "testing",
+    model_outputs = load_model_object("wf"),
+    scenario_name = scenario,
+    performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+    r = list(
+      ics_cd = ics_code,
+      ics_data = all_ics_data,
+      scenario_data = scenario_data
+    )
+  )
+
+  # create dummy value to test whether it is replaced when same scenario is run
+  dummy_replacement_value <- 1
+  dummy_last_known_predictions <- purrr::pluck(
+    testing_last_known,
+    "predictions"
+  ) |>
+    mutate(
+      value = dummy_replacement_value
+    )
+
+  expect_false(
+    any(
+      update_predictions_and_plot_r(
+        prediction_custom_scenario = "testing",
+        model_outputs = load_model_object("wf"),
+        scenario_name = scenario,
+        performance_metrics = "Proportion of attended GP appointments (over 4 weeks wait time)",
+        r = list(
+          ics_cd = ics_code,
+          ics_data = all_ics_data,
+          scenario_data = scenario_data,
+          predictions = dummy_last_known_predictions
+        )
+      ) |>
+        purrr::pluck("predictions") |>
+        pull(!!sym("value")) == dummy_replacement_value
+    ),
+    label = "the dummy replacement value is replaced by the regenerated prediction values"
+  )
+})
+
+
+
+
+
+test_that("update_custom_tables works", {
+
+  ics_code <- "QUY"
+  scenario <- "last_known"
+  scenario_data_inputs <- scenario_inputs(
+    ics_code = ics_code,
+    horizon = 4,
+    scenario = scenario
+  )
+
+  model_pi <- load_model_object("perm_imp")
+
+  performance_metrics <- "Proportion of attended GP appointments (over 4 weeks wait time)"
+
+  r <- list()
+
+  output_r_table <- update_custom_tables(
+    input_table = scenario_data_inputs,
+    model_permutation_importance = model_pi,
+    performance_metrics = performance_metrics,
+    r = r
+  )
+
+  expect_contains(
+    names(output_r_table),
+    "scenario_data"
+  )
+
+  expect_contains(
+    output_r_table |> purrr::pluck("scenario_data") |> names(),
+    "custom"
+  )
+
+  expect_equal(
+    output_r_table |>
+      purrr::pluck("scenario_data", "custom") |>
+      names() |>
+      head(2),
+    c("metric", "theme"),
+    label = "metric and theme are the first two headers of scenario_data$custom"
   )
 
 })

@@ -16,3 +16,18 @@ test_that("ggplot images are consistent", {
     p
   )
 })
+
+test_that("pie chart works", {
+
+  vdiffr::expect_doppelganger(
+    "Acute to trust proportions pie chart is consistent",
+    plot_trust_icb_proportions("QR1")
+  )
+})
+
+test_that("hold message image works", {
+  vdiffr::expect_doppelganger(
+    "ggplot hold message",
+    plot_hold_message()
+  )
+})

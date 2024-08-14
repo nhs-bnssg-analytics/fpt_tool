@@ -139,7 +139,7 @@ test_that("end to end modelling function works", {
       outputs$year,
       inputs |>
         pivot_longer(
-          cols = !c("metric", "domain"),
+          cols = !c("metric", "theme"),
           names_to = "year",
           values_to = "value"
         ) |>
