@@ -5,7 +5,10 @@ lookup_ics_table <- snapshot_ics_lookup()
 ics_names <- lookup_ics_names(with_region = TRUE)
 
 ## code to prepare `trust_ics_proportions` dataset goes here
-trust_ics_props <- trust_ics_proportions()
+trust_ics_props <- snapshot_trust_ics_proportions()
+
+## metadata for the metrics
+metadata <- snapshot_metadata()
 
 ## replace metadata in sysdata.rda
 ### create new environment
@@ -24,9 +27,6 @@ save(list = names(new_env),
 
 ## historic ics data for all of the metrics
 ics_timeseries <- snapshot_ics_data()
-
-## metadata for the metrics
-metadata <- snapshot_metadata()
 
 ## historic ics data for all of the metrics
 ics_timeseries <- snapshot_ics_data()

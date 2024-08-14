@@ -347,7 +347,7 @@ model_descriptions <- function(model) {
 #'
 #' @importFrom purrr pluck
 #' @importFrom dplyr select all_of bind_cols mutate lag row_number pick
-#'   everything contains
+#'   everything contains slice
 #' @importFrom rlang sym
 #' @importFrom tune extract_fit_parsnip
 #' @importFrom stats predict
@@ -378,16 +378,16 @@ make_predictions <- function(model, input_data) {
       )
 
     input_data <- input_data |>
-      arrange(!!sym("org"), !!sym("year")) #|>
-      # mutate(
-      #   across(
-      #     !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
-      #     function(x) ifelse(is.na(lag(x)), 0, x - lag(x))
-      #   ),
-      #   .by = c(
-      #     !!sym("org")
-      #   )
-      # )
+      arrange(!!sym("org"), !!sym("year")) |>
+      mutate(
+        across(
+          !any_of(c("year", "quarter", "month", "org", "nhs_region", "pandemic_onwards")),
+          \(x) x - lag(x)
+        ),
+        .by = c(
+          !!sym("org")
+        )
+      )
   }
 
   if (grepl("glm", model_configuration$engine)) {
@@ -406,15 +406,34 @@ make_predictions <- function(model, input_data) {
     # imputed in the workflow). This function helps it return an NA in this
     # situation
     predict_with_error_handle <- function(object, inputs) {
-      pred <- try(
-        stats::predict(object, new_data = inputs),
-        silent = TRUE
+
+      data_cols <- setdiff(
+        names(inputs),
+        c("org", "year", "nhs_region", "quarter", "month")
       )
 
-      if (inherits(pred, "try-error")) {
+      all_na <- inputs |>
+        select(
+          all_of(
+            data_cols
+          )
+        ) |>
+        is.na() |>
+        all()
+
+      if (isTRUE(all_na)) {
         pred <- NA
       } else {
-        pred <- as.numeric(pred$.pred)
+        pred <- try(
+          stats::predict(object, new_data = inputs),
+          silent = TRUE
+        )
+
+        if (inherits(pred, "try-error")) {
+          pred <- NA
+        } else {
+          pred <- as.numeric(pred$.pred)
+        }
       }
 
       return(pred)
