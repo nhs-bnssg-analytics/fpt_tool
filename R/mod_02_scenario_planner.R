@@ -536,20 +536,35 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(
       input$btn_add_scenario_prediction, {
 
-        update_predictions_and_plot_r(
-          prediction_custom_scenario = input$custom_name,
-          model_outputs = model_outputs |>
-            lapply(
-              function(x) x[["wf"]]
-            ),
-          scenario_name = "custom",
-          performance_metrics = input$performance_metric_selection,
-          r = r
-        )
+        # check for hyphen in the custom_name value, as this is an illegal
+        # character
+        illegal <- grepl("-", input$custom_name)
 
-        output$performance_plot <- renderPlot({
-          r$performance_plot
-        }, res = 96)
+        if (isTRUE(illegal)) {
+          showModal(
+            modalDialog(
+              title = "Illegal character",
+              "A hyphen cannot be used in the scenario name. Please rename the scenario.",
+              easyClose = TRUE,
+              footer = NULL
+            )
+          )
+        } else {
+          update_predictions_and_plot_r(
+            prediction_custom_scenario = input$custom_name,
+            model_outputs = model_outputs |>
+              lapply(
+                function(x) x[["wf"]]
+              ),
+            scenario_name = "custom",
+            performance_metrics = input$performance_metric_selection,
+            r = r
+          )
+
+          output$performance_plot <- renderPlot({
+            r$performance_plot
+          }, res = 96)
+        }
       })
 
     # remove current scenario from chart
