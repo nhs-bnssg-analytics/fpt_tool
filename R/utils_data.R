@@ -117,7 +117,7 @@ snapshot_model <- function() {
   performance_metrics <- performance_metrics()
 
   # model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_no_lag_target_proportion_pi.rds")[performance_metrics]
-  model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi.rds")[performance_metrics]
+  model <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/outputs/model_objects/wfs_best_mape_pi_reduced_inputs.rds")[performance_metrics]
 
   return(model)
 }
