@@ -842,31 +842,40 @@ mod_02_scenario_planner_server <- function(id, r){
       }
     })
 
-    output$report_btn <- downloadHandler(
-
-      filename <-  "Shiny planner tool scenarios.docx",
-      content = function(file) {
-        tempReport <- file.path(tempdir(), "skeleton.Rmd")
-
-        file.copy(
-          system.file("rmarkdown", "templates", "scenario-report", "skeleton", "skeleton.Rmd", package = "planner"),
-          tempReport,
-          overwrite = TRUE
+    if (!requireNamespace("flextable", quietly = TRUE)) {
+      showModal(
+        modalDialog(
+          title = "Missing package - flextable",
+          "Please close the application and install the 'flextable' package: install.packages('flextable')",
+          easyClose = TRUE,
+          footer = NULL
         )
-        params <- list(
-          performance_plot = r$performance_plot,
-          prediction_data = r$predictions,
-          ics_name = input$ics_selection
-        )
-        rmarkdown::render(
-          tempReport,
-          output_file = file,
-          params = params,
-          envir = new.env(parent = globalenv())
-        )
+      )
+    } else {
+      output$report_btn <- downloadHandler(
+        filename <-  "Shiny planner tool scenarios.docx",
+        content = function(file) {
+          tempReport <- file.path(tempdir(), "skeleton.Rmd")
 
-      }
-    )
+          file.copy(
+            system.file("rmarkdown", "templates", "scenario-report", "skeleton", "skeleton.Rmd", package = "planner"),
+            tempReport,
+            overwrite = TRUE
+          )
+          params <- list(
+            performance_plot = r$performance_plot,
+            prediction_data = r$predictions,
+            ics_name = input$ics_selection
+          )
+          rmarkdown::render(
+            tempReport,
+            output_file = file,
+            params = params,
+            envir = new.env(parent = globalenv())
+          )
+        }
+      )
+    }
   })
 
 }
