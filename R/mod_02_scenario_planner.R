@@ -849,7 +849,7 @@ mod_02_scenario_planner_server <- function(id, r){
         tempReport <- file.path(tempdir(), "skeleton.Rmd")
 
         file.copy(
-          "inst/rmarkdown/templates/scenario-report/skeleton/skeleton.Rmd",
+          system.file("rmarkdown", "templates", "scenario-report", "skeleton", "skeleton.Rmd", package = "planner"),
           tempReport,
           overwrite = TRUE
         )
