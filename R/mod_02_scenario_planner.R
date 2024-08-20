@@ -6,8 +6,8 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList checkboxInput numericInput downloadButton
-#'   textInput span fileInput radioButtons selectInput selectInput sliderInput
+#' @importFrom shiny NS tagList checkboxInput numericInput textInput span
+#'   fileInput radioButtons selectInput selectInput sliderInput
 #' @importFrom bslib navset_card_tab input_task_button card card_header
 #'   card_body layout_column_wrap layout_sidebar sidebar bs_theme page_fluid
 #'   nav_panel
@@ -229,11 +229,6 @@ mod_02_scenario_planner_ui <- function(id){
       ns("performance_plot"),
       height = '60vh'
     ),
-    # downloadButton(
-    #   ns("report_btn"),
-    #   "Generate report",
-    #   style = "width:25%;"
-    # )
     uiOutput(ns("download_button"))
   )
 
@@ -295,7 +290,7 @@ mod_02_scenario_planner_ui <- function(id){
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
 #' @importFrom shiny downloadHandler observeEvent renderPlot showModal
-#'   modalDialog updateCheckboxInput
+#'   modalDialog updateCheckboxInput downloadButton
 #' @importFrom rmarkdown render
 #' @importFrom utils write.csv read.csv
 #' @param r a `reactiveValues()` list with ics_cd (string, 3 letter code for
@@ -834,22 +829,34 @@ mod_02_scenario_planner_server <- function(id, r){
 
     output$download_button <- renderUI({
       if (!is.null(r$predictions)) {
-        downloadButton(
-          ns("report_btn"),
-          "Generate report",
-          style = "width:25%;"
-        )
+        if (!requireNamespace("flextable", quietly = TRUE)) {
+          showModal(
+            modalDialog(
+              title = "flextable missing",
+              "The 'flextable' package is required to enable reporting functionality. If you would like this, please exit the app and run 'install.packages('flextable')'.",
+              easyClose = TRUE,
+              footer = NULL
+            )
+          )
+        } else {
+          downloadButton(
+            ns("report_btn"),
+            "Generate report",
+            style = "width:25%;"
+          )
+        }
       }
     })
 
-    output$report_btn <- downloadHandler(
 
+    output$report_btn <- downloadHandler(
       filename <-  "Shiny planner tool scenarios.docx",
       content = function(file) {
+
         tempReport <- file.path(tempdir(), "skeleton.Rmd")
 
         file.copy(
-          "inst/rmarkdown/templates/scenario-report/skeleton/skeleton.Rmd",
+          system.file("rmarkdown", "templates", "scenario-report", "skeleton", "skeleton.Rmd", package = "planner"),
           tempReport,
           overwrite = TRUE
         )
@@ -868,6 +875,5 @@ mod_02_scenario_planner_server <- function(id, r){
       }
     )
   })
-
 }
 
