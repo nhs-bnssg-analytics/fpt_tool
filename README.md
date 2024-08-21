@@ -23,7 +23,10 @@ You can install the development version of planner from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("nhs-bnssg-analytics/shiny_planner")
+devtools::install_github(
+  "nhs-bnssg-analytics/shiny_planner",
+  dependencies = "Suggests"
+)
 ```
 
 ## Usage
