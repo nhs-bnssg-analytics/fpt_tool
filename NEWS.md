@@ -1,3 +1,7 @@
+# planner 0.1.2.9000
+
+* fixes bug when loading csv in as custom table, when csv contains commas for big numbers
+
 # planner 0.1.2 (2024-08-20)
 
 * Fixed issue where the report template couldn't be located when the package was installed.

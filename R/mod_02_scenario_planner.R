@@ -286,7 +286,7 @@ mod_02_scenario_planner_ui <- function(id){
 #' @noRd
 #' @importFrom DT datatable renderDT formatRound editData JS
 #' @importFrom dplyr tibble distinct anti_join join_by as_tibble setdiff
-#'   bind_rows filter
+#'   bind_rows filter rename_with starts_with across mutate
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
 #' @importFrom shiny downloadHandler observeEvent renderPlot showModal
@@ -606,14 +606,26 @@ mod_02_scenario_planner_server <- function(id, r){
         if (is.null(input$custom_scenario_file)) {
           return(r$scenario_data$custom)
         }
-
         # read in new file
         file_custom_data <- utils::read.csv(
           input$custom_scenario_file$datapath,
           check.names = FALSE,
           header = TRUE
         ) |>
-          dplyr::as_tibble()
+          dplyr::as_tibble() |>
+          rename_with(
+            .fn = tolower
+          ) |>
+          mutate(
+            across(
+              starts_with("2"),
+              ~ as.numeric(gsub(",", "", .x))
+            ),
+            across(
+              any_of(c("metric")),
+              ~ factor(.x, levels = .x)
+            )
+          )
 
         # perform file checks
         pass_checks <- check_custom_inputs(
