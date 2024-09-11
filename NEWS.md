@@ -1,3 +1,10 @@
+# planner 0.1.3
+
+* fixes bug when loading csv in as custom table, when csv contains commas for big numbers
+* allows csv table to have metrics in a different order to what appears on the page
+* deselects template checkboxes when new ICS or metrics group are selected
+* updating the horizon selector while a template scenario is selected will extend/shorten that template scenario appropriately
+
 # planner 0.1.2 (2024-08-20)
 
 * Fixed issue where the report template couldn't be located when the package was installed.

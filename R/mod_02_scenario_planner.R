@@ -286,7 +286,7 @@ mod_02_scenario_planner_ui <- function(id){
 #' @noRd
 #' @importFrom DT datatable renderDT formatRound editData JS
 #' @importFrom dplyr tibble distinct anti_join join_by as_tibble setdiff
-#'   bind_rows filter
+#'   bind_rows filter rename_with starts_with across mutate
 #' @importFrom purrr map_df
 #' @importFrom rlang sym
 #' @importFrom shiny downloadHandler observeEvent renderPlot showModal
@@ -336,6 +336,19 @@ mod_02_scenario_planner_server <- function(id, r){
 
         # put holding message on display with instructions for what to do
         r$performance_plot <- plot_hold_message()
+
+        shiny::updateCheckboxInput(
+          inputId = "display_last_known",
+          value = FALSE
+        )
+        shiny::updateCheckboxInput(
+          inputId = "display_percent",
+          value = FALSE
+        )
+        shiny::updateCheckboxInput(
+          inputId = "display_linear",
+          value = FALSE
+        )
     })
 
     observeEvent(
@@ -378,6 +391,7 @@ mod_02_scenario_planner_server <- function(id, r){
     # calculate the scenario data if "percent change" selected
     observeEvent(
       input$percent_change_button, {
+
         percent_change <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
@@ -402,6 +416,7 @@ mod_02_scenario_planner_server <- function(id, r){
     # calculate the scenario data if "linear" selected
     observeEvent(
       input$linear_button, {
+
         linear_change <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
@@ -606,14 +621,26 @@ mod_02_scenario_planner_server <- function(id, r){
         if (is.null(input$custom_scenario_file)) {
           return(r$scenario_data$custom)
         }
-
         # read in new file
         file_custom_data <- utils::read.csv(
           input$custom_scenario_file$datapath,
           check.names = FALSE,
           header = TRUE
         ) |>
-          dplyr::as_tibble()
+          dplyr::as_tibble() |>
+          rename_with(
+            .fn = tolower
+          ) |>
+          mutate(
+            across(
+              starts_with("2"),
+              ~ as.numeric(gsub(",", "", .x))
+            ),
+            across(
+              any_of(c("metric")),
+              ~ factor(.x, levels = .x)
+            )
+          )
 
         # perform file checks
         pass_checks <- check_custom_inputs(
@@ -637,51 +664,85 @@ mod_02_scenario_planner_server <- function(id, r){
         }
       })
 
+
+
 # Template scenarios tab; adding and removing from chart ------------------
+
+    # first, if the horizon selector is changed when a selection already exists,
+    # ensure the charts are updated with the added/removed years
+    observeEvent(
+      input$horizon_selector, {
+        browser()
+        r$scenario_data$linear <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "linear",
+          linear_years = input$linear_val
+        )
+
+
+        r$scenario_data$percent <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "percent",
+          percent = input$percent_change_val
+        )
+
+
+        r$scenario_data$last_known <- scenario_inputs(
+          ics_code = r$ics_cd,
+          horizon = input$horizon_selector,
+          scenario = "last_known_year"
+        )
+      }
+    )
+
 
     # Update charts depending on whether the "display linear" check box is
     # selected or not
     observeEvent(
-      input$display_linear, {
-        if (input$display_linear) {
-          update_predictions_and_plot_r(
-            prediction_custom_scenario = input$custom_name,
-            model_outputs = model_outputs |>
-              lapply(
-                function(x) x[["wf"]]
-              ),
-            scenario_name = "linear",
-            performance_metrics = input$performance_metric_selection,
-            r = r
-          )
-        } else if (input$display_linear == FALSE) {
-          if (!is.null(r$predictions)) {
-            r$predictions <- r$predictions |>
-              filter(
-                !!sym("value_type") != "Prediction - linear extrapolation"
-              )
+      c(input$display_linear,
+        input$horizon_selector), {
 
-            if (any(grepl("Prediction", r$predictions$value_type))) {
-              r$performance_plot <- plot_performance(
-                historic_data = bind_rows(
-                  r$ics_data,
-                  r$predictions
+          if (input$display_linear) {
+            update_predictions_and_plot_r(
+              prediction_custom_scenario = input$custom_name,
+              model_outputs = model_outputs |>
+                lapply(
+                  function(x) x[["wf"]]
                 ),
-                performance_metric = input$performance_metric_selection
-              )
+              scenario_name = "linear",
+              performance_metrics = input$performance_metric_selection,
+              r = r
+            )
+          } else if (input$display_linear == FALSE) {
+            if (!is.null(r$predictions)) {
+              r$predictions <- r$predictions |>
+                filter(
+                  !!sym("value_type") != "Prediction - linear extrapolation"
+                )
+
+              if (any(grepl("Prediction", r$predictions$value_type))) {
+                r$performance_plot <- plot_performance(
+                  historic_data = bind_rows(
+                    r$ics_data,
+                    r$predictions
+                  ),
+                  performance_metric = input$performance_metric_selection
+                )
+              } else {
+                r$predictions <- NULL
+                r$performance_plot <- plot_hold_message()
+              }
             } else {
-              r$predictions <- NULL
               r$performance_plot <- plot_hold_message()
             }
-          } else {
-            r$performance_plot <- plot_hold_message()
           }
-        }
 
 
-        output$performance_plot <- renderPlot({
-          r$performance_plot
-        }, res = 96)
+          output$performance_plot <- renderPlot({
+            r$performance_plot
+          }, res = 96)
       }
     )
     # update the performance chart when changes to the linear scenario is
@@ -712,45 +773,46 @@ mod_02_scenario_planner_server <- function(id, r){
     # Update charts depending on whether the "display percent" check box is
     # selected or not
     observeEvent(
-      input$display_percent, {
-        if (input$display_percent) {
-          update_predictions_and_plot_r(
-            prediction_custom_scenario = input$custom_name,
-            model_outputs = model_outputs |>
-              lapply(
-                function(x) x[["wf"]]
-              ),
-            scenario_name = "percent",
-            performance_metrics = input$performance_metric_selection,
-            r = r
-          )
-        } else if (input$display_percent == FALSE) {
-          if (!is.null(r$predictions)) {
-            r$predictions <- r$predictions |>
-              filter(
-                !!sym("value_type") != "Prediction - percent change"
-              )
-
-            if (any(grepl("Prediction", r$predictions$value_type))) {
-              r$performance_plot <- plot_performance(
-                historic_data = bind_rows(
-                  r$ics_data,
-                  r$predictions
+      c(input$display_percent,
+        input$horizon_selector), {
+          if (input$display_percent) {
+            update_predictions_and_plot_r(
+              prediction_custom_scenario = input$custom_name,
+              model_outputs = model_outputs |>
+                lapply(
+                  function(x) x[["wf"]]
                 ),
-                performance_metric = input$performance_metric_selection
-              )
+              scenario_name = "percent",
+              performance_metrics = input$performance_metric_selection,
+              r = r
+            )
+          } else if (input$display_percent == FALSE) {
+            if (!is.null(r$predictions)) {
+              r$predictions <- r$predictions |>
+                filter(
+                  !!sym("value_type") != "Prediction - percent change"
+                )
+
+              if (any(grepl("Prediction", r$predictions$value_type))) {
+                r$performance_plot <- plot_performance(
+                  historic_data = bind_rows(
+                    r$ics_data,
+                    r$predictions
+                  ),
+                  performance_metric = input$performance_metric_selection
+                )
+              } else {
+                r$predictions <- NULL
+                r$performance_plot <- plot_hold_message()
+              }
             } else {
-              r$predictions <- NULL
               r$performance_plot <- plot_hold_message()
             }
-          } else {
-            r$performance_plot <- plot_hold_message()
           }
-        }
 
-        output$performance_plot <- renderPlot({
-          r$performance_plot
-        }, res = 96)
+          output$performance_plot <- renderPlot({
+            r$performance_plot
+          }, res = 96)
       }
     )
     # update the performance chart when changes to the percent scenario is
@@ -781,7 +843,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # Update charts depending on whether the "display last_known" check box is
     # selected or not
     observeEvent(
-      input$display_last_known, {
+      c(input$display_last_known,
+        input$horizon_selector), {
         if (input$display_last_known) {
           update_predictions_and_plot_r(
             prediction_custom_scenario = input$custom_name,
@@ -822,7 +885,6 @@ mod_02_scenario_planner_server <- function(id, r){
         }, res = 96)
       }
     )
-
 
 
 # Reporting from the chart ------------------------------------------------

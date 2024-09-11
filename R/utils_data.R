@@ -8,8 +8,14 @@ check_custom_inputs <- function(database_table, custom_table) {
   )
 
   check_metrics <- identical(
-    database_table |> select(1:2),
-    custom_table |> select(1:2)
+    database_table |>
+      select(1:2)|>
+      mutate(across(c(1,2), as.character)) |>
+      arrange(pick(1:2)),
+    custom_table |>
+      select(1:2)|>
+      mutate(across(c(1,2), as.character)) |>
+      arrange(pick(1:2))
   )
 
   if (!check_names) {
