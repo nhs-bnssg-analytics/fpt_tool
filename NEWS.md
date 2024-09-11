@@ -1,6 +1,8 @@
 # planner 0.1.2.9000
 
 * fixes bug when loading csv in as custom table, when csv contains commas for big numbers
+* allows csv table to have metrics in a different order to what appears on the page
+* deselects template checkboxes when new ICS or metrics group are selected
 
 # planner 0.1.2 (2024-08-20)
 

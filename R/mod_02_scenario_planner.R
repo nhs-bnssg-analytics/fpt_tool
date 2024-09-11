@@ -336,6 +336,19 @@ mod_02_scenario_planner_server <- function(id, r){
 
         # put holding message on display with instructions for what to do
         r$performance_plot <- plot_hold_message()
+
+        shiny::updateCheckboxInput(
+          inputId = "display_last_known",
+          value = FALSE
+        )
+        shiny::updateCheckboxInput(
+          inputId = "display_percent",
+          value = FALSE
+        )
+        shiny::updateCheckboxInput(
+          inputId = "display_linear",
+          value = FALSE
+        )
     })
 
     observeEvent(
