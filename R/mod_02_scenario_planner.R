@@ -374,7 +374,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # calculate the scenario data if "last known value" selected
     observeEvent(
-      input$last_known_value_button, {
+      input$last_known_value_button,
+      ignoreInit = TRUE, {
         last_known <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
@@ -390,7 +391,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # calculate the scenario data if "percent change" selected
     observeEvent(
-      input$percent_change_button, {
+      input$percent_change_button,
+      ignoreInit = TRUE, {
 
         percent_change <- scenario_inputs(
           ics_code = r$ics_cd,
@@ -415,7 +417,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # calculate the scenario data if "linear" selected
     observeEvent(
-      input$linear_button, {
+      input$linear_button,
+      ignoreInit = TRUE, {
 
         linear_change <- scenario_inputs(
           ics_code = r$ics_cd,
@@ -517,7 +520,9 @@ mod_02_scenario_planner_server <- function(id, r){
     # store editted scenario_data
     # https://rstudio.github.io/DT/shiny.html
     # https://yihui.shinyapps.io/DT-edit/
-    observeEvent(input$scenario_data_custom_cell_edit, {
+    observeEvent(
+      input$scenario_data_custom_cell_edit,
+      ignoreInit = TRUE, {
       edited_cell_info <- input$scenario_data_custom_cell_edit |>
         mutate(col = col + 1) # this is because there is an offset as rownames = FALSE
 
@@ -544,7 +549,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # model the current scenario and add it to the charts
     observeEvent(
-      input$btn_add_scenario_prediction, {
+      input$btn_add_scenario_prediction,
+      ignoreInit = TRUE, {
 
         # check for hyphen in the custom_name value, as this is an illegal
         # character
@@ -579,7 +585,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # remove current scenario from chart
     observeEvent(
-      input$btn_remove_scenario_prediction, {
+      input$btn_remove_scenario_prediction,
+      ignoreInit = TRUE, {
 
         if (!is.null(r$predictions)) {
           r$predictions <- r$predictions |>
@@ -616,7 +623,8 @@ mod_02_scenario_planner_server <- function(id, r){
 
     # loads custom file into the database to override the r$scenario_data$custom dataset
     observeEvent(
-      input$custom_scenario_file, {
+      input$custom_scenario_file,
+      ignoreInit = TRUE, {
 
         if (is.null(input$custom_scenario_file)) {
           return(r$scenario_data$custom)
@@ -671,7 +679,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # first, if the horizon selector is changed when a selection already exists,
     # ensure the charts are updated with the added/removed years
     observeEvent(
-      input$horizon_selector, {
+      input$horizon_selector,
+      ignoreInit = TRUE, {
         browser()
         r$scenario_data$linear <- scenario_inputs(
           ics_code = r$ics_cd,
@@ -702,7 +711,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # selected or not
     observeEvent(
       c(input$display_linear,
-        input$horizon_selector), {
+        input$horizon_selector),
+      ignoreInit = TRUE, {
 
           if (input$display_linear) {
             update_predictions_and_plot_r(
@@ -748,7 +758,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # update the performance chart when changes to the linear scenario is
     # applied
     observeEvent(
-      input$apply_linear_button, {
+      input$apply_linear_button,
+      ignoreInit = TRUE, {
 
         linear_change <- scenario_inputs(
           ics_code = r$ics_cd,
@@ -774,7 +785,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # selected or not
     observeEvent(
       c(input$display_percent,
-        input$horizon_selector), {
+        input$horizon_selector),
+      ignoreInit = TRUE, {
           if (input$display_percent) {
             update_predictions_and_plot_r(
               prediction_custom_scenario = input$custom_name,
@@ -818,7 +830,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # update the performance chart when changes to the percent scenario is
     # applied
     observeEvent(
-      input$apply_percent_change_button, {
+      input$apply_percent_change_button,
+      ignoreInit = TRUE, {
 
         percent_change <- scenario_inputs(
           ics_code = r$ics_cd,
@@ -844,7 +857,8 @@ mod_02_scenario_planner_server <- function(id, r){
     # selected or not
     observeEvent(
       c(input$display_last_known,
-        input$horizon_selector), {
+        input$horizon_selector),
+      ignoreInit = TRUE, {
         if (input$display_last_known) {
           update_predictions_and_plot_r(
             prediction_custom_scenario = input$custom_name,
