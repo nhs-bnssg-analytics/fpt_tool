@@ -12,3 +12,7 @@ coverage:
         target: auto
         threshold: 1%
         informational: true
+  ignore:
+    - "R/mod_01_introduction.R"
+    - "R/mod_03_model_info.R"
+    - "R/mod_04_about.R"
