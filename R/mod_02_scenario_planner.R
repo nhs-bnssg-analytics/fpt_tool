@@ -394,6 +394,9 @@ mod_02_scenario_planner_server <- function(id, r){
       input$percent_change_button,
       ignoreInit = TRUE, {
 
+        # checks for an input for year on year percentage change
+        req(input$percent_change_val)
+
         percent_change <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
@@ -419,6 +422,9 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(
       input$linear_button,
       ignoreInit = TRUE, {
+
+        # checks for an input for number of years to extrapolate linear trend through
+        req(input$linear_val)
 
         linear_change <- scenario_inputs(
           ics_code = r$ics_cd,
@@ -761,6 +767,9 @@ mod_02_scenario_planner_server <- function(id, r){
       input$apply_linear_button,
       ignoreInit = TRUE, {
 
+        # checks for an input for number of years to extrapolate linear trend through
+        req(input$linear_val)
+
         linear_change <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
@@ -832,6 +841,9 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(
       input$apply_percent_change_button,
       ignoreInit = TRUE, {
+
+        # checks for an input for year on year percentage change
+        req(input$percent_change_val)
 
         percent_change <- scenario_inputs(
           ics_code = r$ics_cd,
