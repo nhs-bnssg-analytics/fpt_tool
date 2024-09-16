@@ -687,7 +687,7 @@ mod_02_scenario_planner_server <- function(id, r){
     observeEvent(
       input$horizon_selector,
       ignoreInit = TRUE, {
-        browser()
+
         r$scenario_data$linear <- scenario_inputs(
           ics_code = r$ics_cd,
           horizon = input$horizon_selector,
