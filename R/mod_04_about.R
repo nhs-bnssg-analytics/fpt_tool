@@ -119,8 +119,4 @@ mod_04_about_server <- function(id){
   })
 }
 
-## To be copied in the UI
-# mod_04_about_ui("04_about_1")
 
-## To be copied in the server
-# mod_04_about_server("04_about_1")
