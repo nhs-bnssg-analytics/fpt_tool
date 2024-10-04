@@ -10,7 +10,8 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-    h1("Demand and Capacity Strategic Planner"),
+    h1("Future Performance Tool"),
+    p(" An ICS-level demand and capacity scenario model for medium-term performance projections."),
     tagList(
       navset_tab(
         nav_panel(

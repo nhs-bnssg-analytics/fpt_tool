@@ -115,30 +115,6 @@ mod_01_introduction_ui <- function(id) {
       )
     )
   )
-  #       column(
-  #         width = 8,
-  #         p(
-  #           HTML(
-  #             paste(
-  #               "On the Scenario planner tab:",
-  #               "<ol><li>Select the ICS</li>",
-  #               "<li>Select and delete (using backspace) the performance metrics that are not of interest</li>",
-  #               "<li>Scroll down to the bottom of the page</li>",
-  #               "<li>Select the number of years into the future for modelling</li>",
-  #               "<li>In the Template scenarios tab, deselect any scenarios that are not of interest</li>",
-  #               "<li>If the percent change or linear scenarios are retained, update their inputs as desired</li>",
-  #               "<li>Select the custom scenario tab</li>",
-  #               "<li>The custom scenario table is pre-populated from the 'last observed value' scenario. To update the whole table from another scenario, click the appropriate button at the top of the tab</li>",
-  #               "<li>Any value in the table can be changed by double clicking in a cell and typing a new value, followed by the tab key</li>",
-  #               "<li>Once all of the new values have been entered, click the 'Update predictions' button below the chart and see the effect of the scenarios to future years</li></ol>"
-  #             )
-  #           )
-  #         )
-  #       )
-  #     )
-  #   )
-  # )
-
 }
 
 #' 01_introduction Server Functions

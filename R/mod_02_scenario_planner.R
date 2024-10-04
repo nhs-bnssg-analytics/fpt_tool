@@ -18,10 +18,10 @@ mod_02_scenario_planner_ui <- function(id){
   # scenario cards
   last_known_card <- card(
     fill = FALSE,
-    class = "scenario-card",
+    # class = "scenario-card",
     card_header(
       "Last observed value",
-      class = "scenario-card-header"
+      class = "default-card-header"
     ),
     checkboxInput(
       inputId = ns("display_last_known"),
@@ -34,10 +34,10 @@ mod_02_scenario_planner_ui <- function(id){
   )
 
   percent_card <- card(
-    class = "scenario-card",
+    # class = "scenario-card",
     card_header(
       "Percentage change",
-      class = "scenario-card-header"
+      class = "default-card-header"
     ),
     checkboxInput(
       inputId = ns("display_percent"),
@@ -70,10 +70,10 @@ mod_02_scenario_planner_ui <- function(id){
   )
 
   linear_card <- card(
-    class = "scenario-card",
+    # class = "scenario-card",
     card_header(
       "Linear change",
-      class = "scenario-card-header"
+      class = "default-card-header"
     ),
     checkboxInput(
       inputId = ns("display_linear"),
@@ -109,7 +109,7 @@ mod_02_scenario_planner_ui <- function(id){
   custom_template_card <- card(
     card_header(
       "Populate a custom scenario",
-      class = "scenario-card-header"
+      class = "default-card-header"
     ),
     card_body(
       layout_column_wrap(
@@ -245,7 +245,7 @@ mod_02_scenario_planner_ui <- function(id){
       value = 5,
       step = 1
     ),
-    bslib::navset_card_tab(
+    bslib::navset_card_pill(
       full_screen = TRUE,
       bslib::nav_panel(
         title = "Custom scenario",
@@ -485,17 +485,25 @@ mod_02_scenario_planner_server <- function(id, r){
         ),
         options = list(
           paging = TRUE,
-          pageLength = isolate(input$scenario_data_custom_state$length),
+          pageLength = 25,
           lengthMenu = c(5, 10, 15, 25, 100),
           searching = TRUE,
           ordering = TRUE,
           autoWidth = TRUE,
           dom = 'Blfrtip',
           buttons = list(
-            list(extend = 'copy',
-                 title = NULL # prevents the title of the app being included when copying the data
-                 ),
-            'csv'),
+            list(
+              extend = 'copy',
+              title = NULL, # prevents the title of the app being included when copying the data
+              className = "dtButton",
+              text = "Copy table to clipboard"
+              ),
+            list(
+              extend = 'csv',
+              className = 'dtButton',
+              text = "Download table to csv"
+            )
+          ),
           stateSave = TRUE,
           order = isolate(input$scenario_data_custom_state$order)
           # columnDefs = list(
