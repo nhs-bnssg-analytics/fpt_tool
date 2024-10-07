@@ -11,7 +11,7 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
     h1("Future Performance Tool"),
-    p(" An ICS-level demand and capacity scenario model for medium-term performance projections."),
+    p("An ICS-level demand and capacity scenario model for medium-term performance projections."),
     tagList(
       navset_tab(
         nav_panel(
