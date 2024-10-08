@@ -468,9 +468,10 @@ update_observed_time_period_predictions <- function(model_outputs, r) {
 #' @return character vector of the variables that are most important to all of
 #'   the models selected, where the first variable is the most important
 #'
-#' @importFrom dplyr bind_rows filter mutate summarise
+#' @importFrom dplyr bind_rows filter mutate summarise desc arrange
 #' @importFrom rlang sym
 #' @importFrom utils head
+#' @importFrom tidyr complete
 #'
 #' @noRd
 important_variables <- function(model_permutation_importance,
@@ -492,6 +493,19 @@ important_variables <- function(model_permutation_importance,
     filter(
       !!sym("metric") != !!sym("Variable")
     ) |>
+    # some "Variables" are missing within a metric, therefore when taking an
+    # average of their overall importance, they appear to be more important
+    # because the average is over fewer values. Here we ensure all Variables
+    # exist for all metrics, and provide an Importance score of 0 to the ones
+    # that were previously missing
+    tidyr::complete(
+      metric = !!sym("metric"),
+      Variable = !!sym("Variable"),
+      fill = list(
+        Importance = 0,
+        StDev = 0
+      )
+    ) |>
     summarise(
       Importance = max(!!sym("Importance")),
       .by = c(
@@ -503,6 +517,11 @@ important_variables <- function(model_permutation_importance,
       Importance = mean(!!sym("Importance")),
       .by = c(
         !!sym("Variable")
+      )
+    ) |>
+    arrange(
+      desc(
+        !!sym("Importance")
       )
     )
 
