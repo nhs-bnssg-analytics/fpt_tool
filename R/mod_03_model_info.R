@@ -71,6 +71,7 @@ mod_03_model_info_ui <- function(id){
     layout_column_wrap(
       width = "1000px",
       fixed_width = TRUE,
+      heights_equal = "row",
       accuracy_card,
       variable_importance_card
     )
@@ -83,6 +84,8 @@ mod_03_model_info_ui <- function(id){
 #' @importFrom tidytext scale_y_reordered reorder_within
 #' @importFrom stringr str_wrap
 #' @importFrom rlang sym
+#' @importFrom purrr list_rbind
+#' @importFrom dplyr mutate group_by top_n
 #' @noRd
 mod_03_model_info_server <- function(id){
   moduleServer(id, function(input, output, session){

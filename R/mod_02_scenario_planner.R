@@ -605,9 +605,10 @@ mod_02_scenario_planner_server <- function(id, r){
         if (!is.null(r$predictions)) {
           r$predictions <- r$predictions |>
             filter(
-              !!sym("value_type") != paste0(
-                "Prediction - ",
-                input$custom_name
+              !grepl(
+                paste0("Prediction - ", input$custom_name),
+                !!sym("value_type"),
+                ignore.case = TRUE
               )
             )
 

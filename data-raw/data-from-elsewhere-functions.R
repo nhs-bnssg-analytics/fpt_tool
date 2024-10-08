@@ -100,6 +100,10 @@ snapshot_metadata <- function() {
 snapshot_model_accuracy <- function() {
   model_accuracy <- readRDS("C:/Users/Sebastian.Fox/R/Play/d_and_c/tests/model_testing/model_summary_information.rds") |>
     filter(
+      `Model type` == "logistic_regression",
+      `Number lagged target years` == "0 lagged years"
+    ) |>
+    filter(
       !!sym("Test set value") == min(!!sym("Test set value")),
       .by = !!sym("Target variable")
     ) |>
