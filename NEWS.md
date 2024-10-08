@@ -1,3 +1,10 @@
+# planner 0.1.4
+
+* models for each outcome are only GLMs
+* improvements in how the custom table is sorted to indicate the importance of each variable
+* fixes the bug preventing users to remove custom scenarios with capital letters in
+* improved aesthetics
+
 # planner 0.1.3
 
 * fixes bug when loading csv in as custom table, when csv contains commas for big numbers
