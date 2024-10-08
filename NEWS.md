@@ -1,11 +1,12 @@
-# planner 0.1.4
+# fptool 0.1.4 (2024-10-08)
 
+* package renamed from planner to fptool
 * models for each outcome are only GLMs
 * improvements in how the custom table is sorted to indicate the importance of each variable
 * fixes the bug preventing users to remove custom scenarios with capital letters in
 * improved aesthetics
 
-# planner 0.1.3
+# planner 0.1.3 (2024-09-12)
 
 * fixes bug when loading csv in as custom table, when csv contains commas for big numbers
 * allows csv table to have metrics in a different order to what appears on the page

@@ -53,7 +53,7 @@ usethis::use_test("app")
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("planner")
+usethis::use_vignette("fptool")
 devtools::build_vignettes()
 
 ## Code Coverage----
