@@ -21,14 +21,9 @@ mod_03_model_info_ui <- function(id){
       p(
         HTML(
           paste(
-            "Each performance metric is built with a different model.",
-            "Each model is selected from a number of models using different length of data, different inputs and different modelling methods.",
-            "The models are assessed by:",
-            "<ol><li>Predicting the outcome on a subset of the observed data using the model.</li>",
-            "<li>Those predictions are compared with the observed values.</li>",
-            "<li>For each data point, the absolute difference between the two values is calculated, which is then calculated as a percentage of the observed value ('percentage error').</li>",
-            "<li>An average (mean) of these percentage errors is calculated, which is the resulting score for that model.</li></ol>",
-            "The model with the lowest mean absolute percentage error for each performance metric is then selected.",
+            "The predictions for each performance metricare made with a different model.",
+            "The Mean Absolute Percentage Error for each model is presented in the chart below.",
+            "The values in the chart below refer to the average error (the difference between the observed and the predicted values) as a percentage of the observed value for the data that the models were tested on.",
             "A number of 10% in the charts below can be interpreted as 'on average, the prediction error is 10% of the real value for this model'."
           )
         )
@@ -49,7 +44,8 @@ mod_03_model_info_ui <- function(id){
       p(
         paste(
           "The important variables that influence each model are different.",
-          "The models are built by throwing in lots of predictor variables that aren't necessarily related to the outcome, and then the modelling process will identify which variables are most related to the outcome.",
+          "The models are built by throwing in all of input variables, which are not necessarily related to the outcome. The modelling process will identify the variables most related to the outcome.",
+          "These variabels have a higher influence on the outcome.",
           "Bare in mind that the most related variables identified will not necessarily have a causal impact on the outcome. This process cannot determine that."
           )
         ),
@@ -58,7 +54,7 @@ mod_03_model_info_ui <- function(id){
           paste(
           "Use the following charts <i>along with other evidence</i> to justify strategies.<br><br>",
           "The important variables from the models are calculated using a method called 'permutation importance'.",
-          "This method takes the existing model, then calculates the increase in the error when the values for each input metric in turn is shuffled at random. This shuffling process is done 10 times for each input metric, and an average and standard deviation are calculated."
+          "This method takes the existing model, then calculates the increase in the error when the values for each input metric in turn is shuffled at random. This shuffling process is done 10 times for each input metric, with an average and standard deviation calculated."
           )
         )
       )

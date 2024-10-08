@@ -3,8 +3,12 @@ path.d: DESCRIPTION
 dir.r: R
 dir.v: vignettes
 dir.t: tests
-extra.suggests: readxl
-pkg_ignore: readxl
+extra.suggests:
+  - "readxl"
+  - "flextable"
+pkg_ignore:
+  - "readxl"
+  - "flextable"
 document: yes
 normalize: yes
 inside_rmd: no

@@ -17,7 +17,6 @@ Imports:
     ggrepel,
     glmnet,
     golem (>= 0.4.1),
-    pkgload,
     purrr,
     randomForest,
     recipes,

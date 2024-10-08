@@ -170,7 +170,7 @@ plot_trust_icb_proportions <- function(ics_code) {
     ) +
     scale_fill_brewer(palette = "Set1") +
     labs(
-      title = "Estimated patient admissions from residents in ICS",
+      title = "Estimated patient admissions from ICS residents",
       subtitle = "Based on all admissions between 2018/19 and 2020/21",
       caption = "Source: NHS Acute (Hospital) Trust Catchment Populations,\nOffice for Health Improvement and Disparities"
     )

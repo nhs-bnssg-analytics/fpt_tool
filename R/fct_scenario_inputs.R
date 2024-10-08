@@ -517,10 +517,10 @@ important_variables <- function(model_permutation_importance,
   return(important_metrics)
 }
 
-#' @importFrom dplyr filter mutate arrange
+#' @importFrom dplyr mutate arrange setdiff
 #' @importFrom rlang sym
 update_custom_tables <- function(input_table, model_permutation_importance, performance_metrics, r) {
-
+# browser()
   # character vector of the most important variables based on the selected
   # performance metrics
   important_vars <- important_variables(
@@ -528,12 +528,16 @@ update_custom_tables <- function(input_table, model_permutation_importance, perf
     performance_metrics = performance_metrics
   )
 
+  missing_vars <- setdiff(
+    input_table$metric,
+    important_vars
+  )
+
   r$scenario_data$custom <- input_table |>
-    filter(!!sym("metric") %in% important_vars) |>
     mutate(
       metric = factor(
         !!sym("metric"),
-        levels = important_vars
+        levels = c(important_vars, missing_vars)
       )
     ) |>
     arrange(!!sym("metric"))
