@@ -25,7 +25,7 @@ library(flextable)
 ```
 
 
-This report was built with version `r packageVersion("planner")` of the tool.
+This report was built with version `r packageVersion("fptool")` of the tool.
 
 ## Introduction
 

@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(planner)
+library(fptool)
 
-test_check("planner")
+test_check("fptool")

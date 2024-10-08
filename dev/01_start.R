@@ -19,7 +19,7 @@
 ## to change the name in the app_sys() function in app_config.R /!\
 ##
 golem::fill_desc(
-  pkg_name = "planner", # The Name of the package containing the App
+  pkg_name = "fptool", # The Name of the package containing the App
   pkg_title = "Demand and Capacity Strategic Planning Tool", # The Title of the package containing the App
   pkg_description = "Test different scenarios for future planning of resources at an Integrated Care System level.", # The Description of the package containing the App
   author_first_name = "Sebastian", # Your First Name
