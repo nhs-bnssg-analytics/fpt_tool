@@ -26,6 +26,9 @@ to run the application without installing the package:
 shiny::runGitHub("fpt_tool", "nhs-bnssg-analytics")
 ```
 
+You may also be able to access the application on
+[shinapps.io](https://sw-dsn.shinyapps.io/future-performance-tool/).
+
 ## Installation
 
 You can install the development version of fptool from
