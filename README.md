@@ -16,6 +16,16 @@ It leverages multiple models developed on public data to provide
 insights into future NHS performance based on various demand and
 capacity scenarios.
 
+## Run without installing
+
+If you have R installed on your machine, the following command may work
+to run the application without installing the package:
+
+``` r
+# install.packages("shiny")
+shiny::runGitHub("fpt_tool", "nhs-bnssg-analytics")
+```
+
 ## Installation
 
 You can install the development version of fptool from
@@ -62,4 +72,4 @@ By contributing to this project, you agree to abide by its terms.
 
 More information about the data and modelling can be found on the
 [project documentation
-page](https://nhs-bnssg-analytics.github.io/d_and_c/outputs/01_index.html).
+page](https://nhs-bnssg-analytics.github.io/fpt_analysis/outputs/01_index.html).

@@ -25,15 +25,31 @@ mod_04_about_ui <- function(id){
             "It is much harder to do this at a regional level because the structures and populations in each ICS are very different to one another.",
             "A tool that is developed to try and capture the intricacies and detail in one ICS is therefore likely to be unrepresentative and open to challenge if used to inform local decision making in another.",
             "Additionally, each ICS has developed their own bespoke tools to understand demand and capacity, which already supports local decision making, particularly in the acute setting.",
-            "<br><br>This tool has been developed using only publicly available data for the whole of England.",
-            "These data are described in more detail on the ",
-            "<a href = 'https://nhs-bnssg-analytics.github.io/d_and_c/outputs/Data/data_metadata.html' target='_blank'>modelling inputs</a> page of the report documentation.",
-            "The methods underpinning data processing and modelling can be found <a href='https://nhs-bnssg-analytics.github.io/d_and_c/outputs/01_index.html' target='_blank'>here</a>.",
-            "The analysis and modelling was done using R and the reproducible code has been made publicly available <a href='https://github.com/nhs-bnssg-analytics/d_and_c' target='_blank'>here</a>.",
+            "<br><br>This tool has been developed using only publicly available data for the whole of England (see references, below, for more detail).",
             "<br><br>This tool should be used to support and build cases for medium term investment.",
             "It can be used in different ways.",
-            "For example, with a particular performance metric in mind, it can be used to see what mix of investment over time can help improve performance.",
-            "Separately, it can be used to understand how investment in a particular capacity input, or population health management programme which will result in changes to demand, will affect multiple performance metrics."
+            "For example, with a particular performance metric in mind, it can be used to see what mix of interventions over time can help improve performance.",
+            "Separately, it can be used to understand how interventions towards a particular capacity input, or population health management programme which will result in changes to demand, will affect multiple performance metrics."
+          )
+        )
+      )
+    )
+  )
+
+  references_card <- card(
+    card_header(
+      "References",
+      class = "default-card-header"
+    ),
+    card_body(
+      p(
+        HTML(
+          paste(
+            "The underpinning data are described in more detail on the ",
+            "<a href = 'https://nhs-bnssg-analytics.github.io/fpt_analysis/outputs/Data/data_metadata.html' target='_blank'>modelling inputs</a> page of the report documentation,",
+            "and a csv file of the data can be downloaded <a href = 'https://github.com/nhs-bnssg-analytics/fpt_analysis/blob/master/ad_hoc/full_data.csv' target='_blank'>here</a>.",
+            "The methods underpinning data processing and modelling can be found <a href='https://nhs-bnssg-analytics.github.io/fpt_analysis/outputs/01_index.html' target='_blank'>here</a>.",
+            "The analysis and modelling was done using R and the reproducible code has been made publicly available <a href='https://github.com/nhs-bnssg-analytics/fpt_analysis' target='_blank'>here</a>."
           )
         )
       )
@@ -85,7 +101,7 @@ mod_04_about_ui <- function(id){
         HTML(
           paste(
             "If you have any feedback or questions, please get in touch at",
-            "<a href='mailto:sebastian.fox3@nhs.net?subject=Demand Capacity planning tool'>sebastian.fox3@nhs.net</a>",
+            "<a href='mailto:sebastian.fox3@nhs.net?subject=Future performance tool'>sebastian.fox3@nhs.net</a>",
             "(Senior Data Scientist in the South West Decision Support Network)."
           )
         )
@@ -97,6 +113,7 @@ mod_04_about_ui <- function(id){
     bslib::page_fluid(
       background_card,
       limitations_card,
+      references_card,
       contact_us_card
     )
   )

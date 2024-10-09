@@ -22,6 +22,15 @@ knitr::opts_chunk$set(
 
 The fptool package is a Shiny application designed to assist staff in planning roles within Integrated Care Systems (ICSs) in understanding the associations between demand and capacity metrics on NHS performance. It leverages multiple models developed on public data to provide insights into future NHS performance based on various demand and capacity scenarios.
 
+## Run without installing
+
+If you have R installed on your machine, the following command may work to run the application without installing the package:
+
+``` r
+# install.packages("shiny")
+shiny::runGitHub("fpt_tool", "nhs-bnssg-analytics")
+```
+
 ## Installation
 
 You can install the development version of fptool from [GitHub](https://github.com/) with:
@@ -60,4 +69,4 @@ Please note that the fptool project is released with a [Contributor Code of Cond
 
 ## Additional Notes
 
-More information about the data and modelling can be found on the [project documentation page](https://nhs-bnssg-analytics.github.io/d_and_c/outputs/01_index.html).
+More information about the data and modelling can be found on the [project documentation page](https://nhs-bnssg-analytics.github.io/fpt_analysis/outputs/01_index.html).
