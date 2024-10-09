@@ -25,13 +25,13 @@ library(flextable)
 ```
 
 
-This report was built with version `r packageVersion("planner")` of the tool.
+This report was built with version `r packageVersion("fptool")` of the tool.
 
 ## Introduction
 
 This report contains charts developed using models built on public data. The models attempt to predict NHS performance metrics for demand and capacity metrics from within the public health and health care setting. Models were selected using a data driven process, which identified which inputs are most influetial on the performance metrics.
 
-More information on the models and their development can be found [here](https://nhs-bnssg-analytics.github.io/d_and_c/outputs/01_index.html).
+More information on the models and their development can be found [here](https://nhs-bnssg-analytics.github.io/fpt_analysis/outputs/01_index.html).
 
 ## Scenario tool
 

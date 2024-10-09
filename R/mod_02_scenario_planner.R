@@ -947,13 +947,13 @@ mod_02_scenario_planner_server <- function(id, r){
 
 
     output$report_btn <- downloadHandler(
-      filename <-  "Shiny planner tool scenarios.docx",
+      filename <-  "Future performance tool scenarios.docx",
       content = function(file) {
 
         tempReport <- file.path(tempdir(), "skeleton.Rmd")
 
         file.copy(
-          system.file("rmarkdown", "templates", "scenario-report", "skeleton", "skeleton.Rmd", package = "planner"),
+          system.file("rmarkdown", "templates", "scenario-report", "skeleton", "skeleton.Rmd", package = "fptool"),
           tempReport,
           overwrite = TRUE
         )

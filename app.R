@@ -4,4 +4,4 @@
 
 pkgload::load_all(export_all = FALSE,helpers = FALSE,attach_testthat = FALSE)
 options("golem.app.prod" = TRUE)
-planner::run_app() # add parameters here (if any)
+fptool::run_app() # add parameters here (if any)
