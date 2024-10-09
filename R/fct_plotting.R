@@ -185,7 +185,7 @@ plot_hold_message <- function() {
     x = 1,
     y = 1,
     text = stringr::str_wrap(
-      "To display future performance, please make area and metric selections and then enter scenario data below before pressing the 'Update' button on the left",
+      "To display future performance, please make area and metric selections and then either add a template scenario or build a custom scenario before adding it to the chart with the green plus button",
       80
     )
   ) |>
