@@ -10,7 +10,7 @@
 #'   fileInput radioButtons selectInput selectInput sliderInput
 #' @importFrom bslib navset_card_tab input_task_button card card_header
 #'   card_body layout_column_wrap layout_sidebar sidebar bs_theme page_fluid
-#'   nav_panel
+#'   nav_panel tooltip
 #' @importFrom DT DTOutput
 mod_02_scenario_planner_ui <- function(id){
   ns <- NS(id)
@@ -18,7 +18,6 @@ mod_02_scenario_planner_ui <- function(id){
   # scenario cards
   last_known_card <- card(
     fill = FALSE,
-    # class = "scenario-card",
     card_header(
       "Last observed value",
       class = "default-card-header"
@@ -29,12 +28,11 @@ mod_02_scenario_planner_ui <- function(id){
       value = FALSE
     ),
     card_body(
-      p("Apply the last observed value for all input metrics to future years.")
+      p("For all input metrics, apply the last observed value to all future years.")
     )
   )
 
   percent_card <- card(
-    # class = "scenario-card",
     card_header(
       "Percentage change",
       class = "default-card-header"
@@ -45,8 +43,22 @@ mod_02_scenario_planner_ui <- function(id){
       value = FALSE
     ),
     card_body(
-      p("Apply a year on year percentage change to the last observed value for each metric to populate future years for the custom scenario."),
-      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 100.")
+
+        span(
+          "For all input metrics, apply a year on year percentage change to the last observed value to populate future years.",
+          tooltip(
+          shiny::icon("circle-question"),
+          HTML(
+            paste(
+              "All metrics that are a proportion get constrained to values between 0 and 100.",
+              "All metrics are constrained to previously observed limits for each ICS. These can be manually overriden in the custom scenario section.",
+              sep = "<br><br>"
+            )
+          ),
+          placement = "bottom"
+        )
+
+      )
     ),
     card_body(
       class = "card-body-input",
@@ -70,7 +82,6 @@ mod_02_scenario_planner_ui <- function(id){
   )
 
   linear_card <- card(
-    # class = "scenario-card",
     card_header(
       "Linear change",
       class = "default-card-header"
@@ -81,8 +92,20 @@ mod_02_scenario_planner_ui <- function(id){
       value = FALSE
     ),
     card_body(
-      p("Extrapolate the last observed values for each metric to populate future years for the custom scenario."),
-      p("Note, for metrics that are a proportion, the values get constrained to values between 0 and 1.")
+      span(
+        "For all input metrics, extrapolate the last observed values into future years using a linear relationship.",
+        tooltip(
+          shiny::icon("circle-question"),
+          HTML(
+            paste(
+            "All metrics that are a proportion get constrained to values between 0 and 100.",
+            "All metrics are constrained to previously observed limits for each ICS. These can be manually overriden in the custom scenario section.",
+            sep = "<br><br>"
+            )
+          ),
+          placement = "bottom"
+        )
+      )
     ),
     card_body(
       class = "card-body-input",
@@ -255,7 +278,7 @@ mod_02_scenario_planner_ui <- function(id){
         title = "Template scenarios",
         layout_column_wrap(
           width = "400px",
-          # height = 500,
+          heights_equal = "row",
           last_known_card,
           percent_card,
           linear_card

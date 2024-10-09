@@ -56,5 +56,6 @@ h2 {
 }
 
 .control-label {
-  font-weight: normal;
+  font-weight: bold;
+  font-size: small;
 }
