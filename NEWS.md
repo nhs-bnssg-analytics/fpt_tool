@@ -1,4 +1,7 @@
-# fptool 0.1.4.9000
+# fptool 0.1.5
+
+* Release for RPyCon
+* On hold image slightly updated in tests to prevent CI from failing
 
 # fptool 0.1.4 (2024-10-08)
 
